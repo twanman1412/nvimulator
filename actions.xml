@@ -387,6 +387,37 @@
 		</CODE>
 	</ACTION>
 
+	<ACTION NAME="vi-save-close-buffer-force">
+		<CODE>
+			buffer.save(view, null, true);
+			jEdit.closeBuffer(view, buffer);
+		</CODE>
+	</ACTION>
+
+	<ACTION NAME="vi-save-close-all">
+		<CODE>
+			vimulator.VimulatorUtilities.saveCloseAll(view);
+		</CODE>
+	</ACTION>
+
+	<ACTION NAME="vi-save-close-all-force">
+		<CODE>
+			vimulator.VimulatorUtilities.saveCloseAll(view);
+		</CODE>
+	</ACTION>
+
+	<ACTION NAME="vi-close-all-force">
+		<CODE>
+			vimulator.VimulatorUtilities.closeAllForce(view);
+		</CODE>
+	</ACTION>
+
+	<ACTION NAME="vi-visual-ex-command" NO_RECORD="TRUE">
+		<CODE>
+			vimulator.VimulatorUtilities.visualExCommand(view);
+		</CODE>
+	</ACTION>
+
 	<ACTION NAME="vi-close-buffer-force">
 		<CODE>
 			jEdit._closeBuffer(view, buffer, true);

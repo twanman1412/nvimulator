@@ -159,6 +159,7 @@ vimulator.keys.command.vi-yank-next-char=Y L
 vimulator.keys.visual.vi-command-mode=ESCAPE
 vimulator.keys.visual.vi-command-mode.2=C+[
 vimulator.keys.visual.vi-command-mode.3=C+C
+vimulator.keys.visual.vi-visual-ex-command=:
 vimulator.keys.visual.vi-yank-selection=Y
 vimulator.keys.visual.vi-delete-selection=D
 vimulator.keys.visual.vi-delete-selection.2=X

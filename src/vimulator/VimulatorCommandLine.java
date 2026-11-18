@@ -58,8 +58,14 @@ public class VimulatorCommandLine extends JPanel implements DocumentListener, Ac
     }
 
     public void beginExCommand() {
+        beginExCommand("");
+    }
+
+    /** Opens the ex prompt with {@code initial} already typed (e.g. "'<,'>" from visual mode). */
+    public void beginExCommand(String initial) {
         textField.setModel("vimulator");
         beginCommandInput(":");
+        if (!initial.isEmpty()) textField.setText(":" + initial);
     }
 
     public void endExCommand() {

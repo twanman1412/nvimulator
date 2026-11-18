@@ -105,6 +105,25 @@ public class VimulatorUtilities {
                 + VimulatorConstants.stringOfMode.get(mode).toLowerCase() + "-mode"));
     }
 
+    /** {@code :wqa} / {@code :wqa!}: save every buffer, then close them all. */
+    public static void saveCloseAll(View view) {
+        jEdit.saveAllBuffers(view, false);
+        org.gjt.sp.jedit.io.VFSManager.waitForRequests();
+        jEdit.closeAllBuffers(view);
+    }
+
+    /** {@code :qa!}: close every buffer, discarding changes. */
+    public static void closeAllForce(View view) {
+        for (org.gjt.sp.jedit.Buffer b : jEdit.getBuffers()) b.setDirty(false);
+        jEdit.closeAllBuffers(view);
+    }
+
+    /** {@code :} in visual mode: open the ex prompt on the selected lines. */
+    public static void visualExCommand(View view) {
+        setCommandMode(view);
+        VimulatorPlugin.getCommandLine(view).beginExCommand("'<,'>");
+    }
+
     /** Insert-mode C-w: delete the word before the caret. */
     public static void insertDeleteWord(View view) {
         JEditEditor ed = new JEditEditor(view);

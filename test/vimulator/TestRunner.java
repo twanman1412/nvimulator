@@ -22,6 +22,7 @@ public class TestRunner {
         vimulator.core.RepeatTest.class,
         vimulator.core.StarSearchTest.class,
         vimulator.core.InsertEditsTest.class,
+        vimulator.core.ExTest.class,
     };
 
     public static void main(String[] args) throws Exception {

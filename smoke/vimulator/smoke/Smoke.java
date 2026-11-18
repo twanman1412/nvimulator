@@ -106,6 +106,14 @@ public class Smoke {
         {"|", "i  foo<C-u>x<Esc>", "  |x"},
         {"|foo", "A<C-o>0x<Esc>", "|xfoo"},
         {"|abc", "i<C-o>$x<Esc>", "abc|x"},
+        // Task 14: ex ranges and :s
+        {"|foo foo\nfoo", "<ex>%s/foo/bar/g", "bar bar\n|bar"},
+        {"|foo foo\nfoo", "<ex>s/foo/bar/", "|bar foo\nfoo"},
+        {"|ab\nab\nab", "jVj<Esc><ex>'<,'>s/\\(a\\)b/\\1x/", "ab\nax\n|ax"},
+        {"|a\nb\nc", "<ex>3", "a\nb\n|c"},
+        {"|a\nb\nc", "<ex>noh", "|a\nb\nc"},
+        {"|aaa", "<ex>s/a/b/g", "|bbb"},
+        {"|abc", "<ex>s/zzz/y/", "|abc"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},
@@ -155,7 +163,20 @@ public class Smoke {
         buffer.remove(0, buffer.getLength());
         buffer.insert(0, text);
         ta.setCaretPosition(caret);
+        String ex = null;
+        int exAt = keys.indexOf("<ex>");
+        if (exAt >= 0) {
+            ex = keys.substring(exAt + 4);
+            keys = keys.substring(0, exAt);
+        }
         for (String tok : tokenize(keys)) send(view, ta, tok);
+        if (ex != null) {
+            try {
+                vimulator.ex.ExInterpreter.eval(view, ex);
+            } catch (vimulator.ex.BadExCommandException e) {
+                return "bad ex command";
+            }
+        }
         int c = ta.getCaretPosition();
         String now = buffer.getText(0, buffer.getLength());
         return now.substring(0, c) + "|" + now.substring(c);
