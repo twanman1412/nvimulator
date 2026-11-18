@@ -212,6 +212,80 @@ public final class Motions {
         return i;
     }
 
+    // ---- find char (line-limited)
+
+    /**
+     * {@code f t F T}. When {@code repeat} is true and the motion is a till ({@code t/T}), a
+     * target char directly next to the caret is skipped, so {@code ;} makes progress.
+     */
+    public static int findChar(TextModel t, int caret, int count, char ch, boolean backward,
+                               boolean till, boolean repeat) {
+        int line = lineOf(t, caret);
+        int ls = t.lineStart(line), le = t.lineEnd(line);
+        int step = backward ? -1 : 1;
+        int i = caret + step;
+        if (till && repeat && i >= ls && i < le && t.charAt(i) == ch) i += step;
+        int found = -1;
+        for (int n = 0; n < count; n++) {
+            found = -1;
+            for (; i >= ls && i < le; i += step) {
+                if (t.charAt(i) == ch) {
+                    found = i;
+                    i += step;
+                    break;
+                }
+            }
+            if (found < 0) return -1;
+        }
+        return till ? found - step : found;
+    }
+
+    // ---- brackets
+
+    private static final String OPEN = "([{", CLOSE = ")]}";
+
+    /** {@code %}: the bracket at or after the caret on the line, then its match. */
+    public static int matchBracket(TextModel t, int caret) {
+        int le = t.lineEnd(lineOf(t, caret));
+        int i = caret;
+        while (i < le && OPEN.indexOf(t.charAt(i)) < 0 && CLOSE.indexOf(t.charAt(i)) < 0) i++;
+        if (i >= le) return -1;
+        char c = t.charAt(i);
+        int k = OPEN.indexOf(c);
+        if (k >= 0) return scanForward(t, i, OPEN.charAt(k), CLOSE.charAt(k));
+        k = CLOSE.indexOf(c);
+        return scanBackward(t, i, OPEN.charAt(k), CLOSE.charAt(k));
+    }
+
+    /** From an opening bracket at {@code from}, the offset of its closing bracket, or -1. */
+    static int scanForward(TextModel t, int from, char open, char close) {
+        int depth = 0;
+        for (int i = from; i < t.length(); i++) {
+            char c = t.charAt(i);
+            if (c == open) depth++;
+            else if (c == close && --depth == 0) return i;
+        }
+        return -1;
+    }
+
+    /** From a closing bracket at {@code from}, the offset of its opening bracket, or -1. */
+    static int scanBackward(TextModel t, int from, char open, char close) {
+        int depth = 0;
+        for (int i = from; i >= 0; i--) {
+            char c = t.charAt(i);
+            if (c == close) depth++;
+            else if (c == open && --depth == 0) return i;
+        }
+        return -1;
+    }
+
+    /** {@code N%}: first non-blank of the line N percent into the buffer. */
+    public static int percentLine(TextModel t, int percent) {
+        if (percent > 100) return -1;
+        int line1 = (int) (((long) percent * t.lineCount() + 99) / 100);
+        return goToLine(t, Math.max(1, line1));
+    }
+
     // ---- paragraphs
 
     private static boolean lineEmpty(TextModel t, int line) {

@@ -35,6 +35,10 @@ public class Smoke {
         {"foo ba|r", "b", "foo |bar"},
         {"|foo bar", "ee", "foo ba|r"},
         {"|a\nb\n\nc", "}", "a\nb\n|\nc"},
+        // Task 5: find / % / marks
+        {"|a,b,c,d", "f,;", "a,b|,c,d"},
+        {"|(a [b] c)", "%", "(a [b] c|)"},
+        {"ab|c\nd", "majmb`a", "ab|c\nd"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},
