@@ -84,6 +84,16 @@ public class Smoke {
         {LONG, "<C-d><C-d><C-u><C-u>", LONG},
         {LONG, "LH", LONG},
         {LONG, "zzzt5j<C-e><C-y>5k", LONG},
+        // Task 11: insert commands and dot repeat
+        {"|foo foo", "cwbar<Esc>w.", "bar ba|r"},
+        {"|a\nb", "Ax<Esc>j.", "ax\nb|x"},
+        {"|a", "3ix<Esc>", "xx|xa"},
+        {"|a\nb", "ox<Esc>.", "a\nx\n|x\nb"},
+        {"|a b c d", "dw.", "|c d"},
+        {"|foo foo", "cwbar<Esc>w.u", "bar fo|o"}, // . is one undo unit; caret placed by jEdit undo
+        {"a|bc", "Cxy<Esc>", "ax|y"},
+        {"foo |bar", "cwxy<Esc>", "foo x|y"},
+        {"  |ab\nc", "ccx<Esc>", "  |x\nc"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},

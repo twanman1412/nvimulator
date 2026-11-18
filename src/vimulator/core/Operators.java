@@ -43,8 +43,9 @@ public final class Operators {
                     ed.yank(text, false);
                     ed.replace(start, end, "");
                 }
-                ed.setCaret(start);
+                // mode first: a host may clamp the caret off the line end while in normal mode
                 ed.setMode(Mode.INSERT);
+                ed.setCaret(start);
                 return true;
             case TOGGLE_CASE:
             case LOWERCASE:
@@ -96,8 +97,8 @@ public final class Operators {
                 String indent = leadingWhitespace(ed, first);
                 int s = ed.lineStart(first);
                 ed.replace(s, ed.lineEnd(last), indent);
-                ed.setCaret(s + indent.length());
                 ed.setMode(Mode.INSERT);
+                ed.setCaret(s + indent.length());
                 return true;
             }
             case SHIFT_RIGHT:

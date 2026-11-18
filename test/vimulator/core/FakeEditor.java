@@ -60,6 +60,8 @@ public class FakeEditor implements Editor {
     @Override public void setCaret(int offset) {
         if (offset < 0 || offset > text.length())
             throw new IndexOutOfBoundsException("caret " + offset + " in length " + text.length());
+        // like Vimulator's caret listener in jEdit: in normal mode the caret can't sit on a line end
+        if (mode == Mode.NORMAL) offset = Motions.clampNormal(this, offset);
         caret = offset;
         int line = lineOfOffset(offset);
         if (line < firstVisible) firstVisible = line;

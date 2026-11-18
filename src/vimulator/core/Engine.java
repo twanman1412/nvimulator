@@ -126,6 +126,15 @@ public final class Engine {
     /** Visual anchor; -1 when unknown (then the caret is used). */
     private int anchor = -1;
     private Visual lastVisual;
+    /** Insert recording for {@code .}: active from a change entering insert mode until it ends. */
+    private boolean recording;
+    private int insertStart;
+    /** Text typed during the insert that belongs to {@link #lastChange}. */
+    private String lastInsertedText = "";
+    private boolean replaying;
+    /** Insert commands whose count repeats the typed text. */
+    private static final Set<String> INSERT_COMMANDS = Set.of("i", "a", "I", "A", "o", "O");
+
     /** Lines scrolled by C-d / C-u; 0 means half a screen. */
     private int scrollAmount;
 
@@ -141,6 +150,7 @@ public final class Engine {
         registerEditCommands();
         registerVisualCommands();
         registerScrolling();
+        registerInsertCommands();
     }
 
     // ------------------------------------------------------------------ public API
@@ -171,7 +181,9 @@ public final class Engine {
                 return Result.DONE;
             default:
                 pending.clear();
+                boolean wasVisual = ed.mode().isVisual();
                 execute(p.cmd);
+                if (!replaying && !wasVisual && isInsert(ed.mode())) startRecording(p.cmd);
                 finish();
                 return Result.DONE;
         }
@@ -183,6 +195,34 @@ public final class Engine {
 
     /** Called by the host when insert/replace mode ends, before the caret moves left. */
     public void onInsertExit() {
+        if (!recording) return;
+        recording = false;
+        int caret = ed.caret();
+        String text = caret >= insertStart && insertStart <= ed.length() ? ed.text(insertStart, caret) : "";
+        lastInsertedText = text;
+        Command c = lastChange;
+        if (c != null && c.cmdKey != null && INSERT_COMMANDS.contains(c.cmdKey) && c.count() > 1 && !text.isEmpty()) {
+            String more = repeatedInsert(c, text, c.count() - 1);
+            ed.replace(caret, caret, more);
+            ed.setCaret(caret + more.length());
+        }
+    }
+
+    private static boolean isInsert(Mode m) {
+        return m == Mode.INSERT || m == Mode.REPLACE;
+    }
+
+    private void startRecording(Command c) {
+        recording = true;
+        insertStart = ed.caret();
+        lastChange = c;
+        lastInsertedText = "";
+    }
+
+    /** Text added for an insert command repeated {@code times} more times (o/O open new lines). */
+    private String repeatedInsert(Command c, String text, int times) {
+        String chunk = c.cmdKey.equals("o") || c.cmdKey.equals("O") ? "\n" + text : text;
+        return chunk.repeat(times);
     }
 
     /** {first, last} lines of the last visual selection, or null. */
@@ -873,5 +913,83 @@ public final class Engine {
                     Scrolling.screenLine(c.ed.lineCount(), c.ed.visibleLineCount(), c.ed.firstVisibleLine(),
                             c.count, which)));
         }
+    }
+
+    // ------------------------------------------------------------------ insert commands and .
+
+    /** Mode first: a host may clamp the caret off the line end while still in normal mode. */
+    private void enterInsert(int caret) {
+        ed.setMode(Mode.INSERT);
+        ed.setCaret(caret);
+    }
+
+    private void registerInsertCommands() {
+        commands.put("i", new CommandSpec(false, c -> enterInsert(ed.caret())));
+        commands.put("a", new CommandSpec(false, c -> {
+            int caret = ed.caret();
+            enterInsert(Math.min(caret + 1, ed.lineEnd(ed.lineOfOffset(caret))));
+        }));
+        commands.put("I", new CommandSpec(false, c -> {
+            int line = caretLine();
+            int s = ed.lineStart(line), e = ed.lineEnd(line), i = s;
+            while (i < e && (ed.charAt(i) == ' ' || ed.charAt(i) == '\t')) i++;
+            enterInsert(i);
+        }));
+        commands.put("A", new CommandSpec(false, c -> enterInsert(ed.lineEnd(caretLine()))));
+        commands.put("o", new CommandSpec(false, c -> {
+            int line = caretLine();
+            String indent = Operators.leadingWhitespace(ed, line);
+            int e = ed.lineEnd(line);
+            ed.beginEdit();
+            try {
+                ed.replace(e, e, "\n" + indent);
+            } finally {
+                ed.endEdit();
+            }
+            enterInsert(e + 1 + indent.length());
+        }));
+        commands.put("O", new CommandSpec(false, c -> {
+            int line = caretLine();
+            String indent = Operators.leadingWhitespace(ed, line);
+            int s = ed.lineStart(line);
+            ed.beginEdit();
+            try {
+                ed.replace(s, s, indent + "\n");
+            } finally {
+                ed.endEdit();
+            }
+            enterInsert(s + indent.length());
+        }));
+        commands.put(".", new CommandSpec(false, c -> {
+            if (lastChange == null) {
+                ed.beep();
+                return;
+            }
+            Command change = lastChange;
+            if (c.hasCount()) {
+                change = new Command(c.count(), 0, change.opKey, change.doubled, change.motionKey,
+                        change.objectKey, change.cmdKey, change.arg);
+            }
+            String text = lastInsertedText;
+            replaying = true;
+            ed.beginEdit();
+            try {
+                execute(change);
+                if (isInsert(ed.mode())) {
+                    String all = text;
+                    if (change.cmdKey != null && INSERT_COMMANDS.contains(change.cmdKey) && change.count() > 1)
+                        all = text + repeatedInsert(change, text, change.count() - 1);
+                    int caret = ed.caret();
+                    ed.replace(caret, caret, all);
+                    ed.setCaret(caret + all.length());
+                    ed.setMode(Mode.NORMAL);
+                }
+            } finally {
+                ed.endEdit();
+                replaying = false;
+            }
+            lastChange = change;
+            lastInsertedText = text;
+        }));
     }
 }
