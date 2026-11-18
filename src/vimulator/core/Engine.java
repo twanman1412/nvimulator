@@ -119,6 +119,7 @@ public final class Engine {
         this.ed = ed;
         registerBasicMotions();
         registerFindMotions();
+        registerTextObjects();
     }
 
     // ------------------------------------------------------------------ public API
@@ -507,5 +508,29 @@ public final class Engine {
             int caret = ed.caret();
             marks.put(c.arg, new int[] {ed.lineOfOffset(caret), Motions.column(ed, caret)});
         }));
+    }
+
+    private void registerTextObjects() {
+        textObjects.put("iw", c -> TextObjects.innerWord(c.ed, c.cc, c.caret, c.count, false));
+        textObjects.put("iW", c -> TextObjects.innerWord(c.ed, c.cc, c.caret, c.count, true));
+        textObjects.put("aw", c -> TextObjects.aWord(c.ed, c.cc, c.caret, c.count, false));
+        textObjects.put("aW", c -> TextObjects.aWord(c.ed, c.cc, c.caret, c.count, true));
+        for (char q : new char[] {'"', '\'', '`'}) {
+            textObjects.put("i" + q, c -> TextObjects.quote(c.ed, c.caret, q, false));
+            textObjects.put("a" + q, c -> TextObjects.quote(c.ed, c.caret, q, true));
+        }
+        String[][] pairs = {{"(", ")", "b"}, {"[", "]", null}, {"{", "}", "B"}, {"<", ">", null}};
+        for (String[] p : pairs) {
+            char open = p[0].charAt(0), close = p[1].charAt(0);
+            for (String k : new String[] {p[0], p[1], p[2]}) {
+                if (k == null) continue;
+                textObjects.put("i" + k, c -> TextObjects.bracket(c.ed, c.caret, c.count, open, close, false));
+                textObjects.put("a" + k, c -> TextObjects.bracket(c.ed, c.caret, c.count, open, close, true));
+            }
+        }
+        textObjects.put("ip", c -> TextObjects.paragraph(c.ed, c.caret, c.count, false));
+        textObjects.put("ap", c -> TextObjects.paragraph(c.ed, c.caret, c.count, true));
+        textObjects.put("it", c -> TextObjects.tag(c.ed, c.caret, c.count, false));
+        textObjects.put("at", c -> TextObjects.tag(c.ed, c.caret, c.count, true));
     }
 }

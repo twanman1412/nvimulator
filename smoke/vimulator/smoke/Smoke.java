@@ -49,6 +49,12 @@ public class Smoke {
         {"a|bc def", "D", "|a"},
         {"|a\nb\nc\nd", "x3ddu", "\nb\nc\n|d"}, // one undo unit; caret placement is jEdit undo behaviour
         {"a\n|b\nc", "dj", "|a"},
+        // Task 7: text objects
+        {"x = \"he|llo\" y", "ca\"z<Esc>", "x = |zy"},
+        {"a[1, |2] b", "da[", "a| b"},
+        {"foo b|ar baz", "ciwqq<Esc>", "foo q|q baz"},
+        {"<a><b>|x</b></a>", "dit", "<a><b>|</b></a>"},
+        {"f(a, |b)", "di(", "f(|)"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},
