@@ -32,6 +32,10 @@ import org.gjt.sp.util.Log;
 import vimulator.ex.*;
 
 public class VimulatorCommandLine extends JPanel implements DocumentListener, ActionListener {
+    /** The last search, for n / N; null until the first search of this session. */
+    private String lastSearchRegex;
+    private boolean lastSearchReverse;
+
     public VimulatorCommandLine(View view) {
         super(new BorderLayout());
 
@@ -71,14 +75,50 @@ public class VimulatorCommandLine extends JPanel implements DocumentListener, Ac
         endCommandInput("");
     }
 
-    public void repeatSearch(boolean reverse) {
-        Registers.Register reg = Registers.getRegister('/');
-        String pattern;
-        if (reg == null || (pattern = reg.toString()) == null) {
-            VimulatorUtilities.beep(view);
-            return;
+    /** Repeats the last search (n / N); {@code opposite} flips its direction. */
+    public void repeatSearch(boolean opposite) {
+        if (lastSearchRegex == null) {
+            Registers.Register reg = Registers.getRegister('/');
+            if (reg == null || reg.toString() == null || reg.toString().isEmpty()) {
+                VimulatorUtilities.beep(view);
+                return;
+            }
+            lastSearchRegex = reg.toString();
+            lastSearchReverse = false;
         }
-        processSearch(pattern, reverse);
+        find(lastSearchRegex, lastSearchReverse ^ opposite);
+    }
+
+    /** Searches a Java regex and remembers it (and its direction) for n / N. Used by * and #. */
+    public void search(String javaRegex, boolean reverse) {
+        lastSearchRegex = javaRegex;
+        lastSearchReverse = reverse;
+        Registers.setRegister('/', javaRegex);
+        find(javaRegex, reverse);
+    }
+
+    /** Finds the next match, skipping the one under the caret, and leaves the caret at its start. */
+    private void find(String javaRegex, boolean reverse) {
+        org.gjt.sp.jedit.textarea.JEditTextArea textArea = view.getTextArea();
+        int caret = textArea.getCaretPosition();
+        try {
+            PatternSearchMatcher matcher = new PatternSearchMatcher(
+                    java.util.regex.Pattern.compile(javaRegex, java.util.regex.Pattern.MULTILINE), false, false);
+            SearchAndReplace.setSearchMatcher(matcher);
+            SearchAndReplace.setSearchFileSet(new CurrentBufferSet());
+            SearchAndReplace.setReverseSearch(reverse);
+            if (!reverse && caret < textArea.getBufferLength()) textArea.setCaretPosition(caret + 1);
+            if (SearchAndReplace.find(view)) {
+                org.gjt.sp.jedit.textarea.Selection[] sel = textArea.getSelection();
+                int start = sel.length > 0 ? sel[0].getStart() : textArea.getCaretPosition();
+                textArea.setCaretPosition(start);
+            } else {
+                textArea.setCaretPosition(caret);
+            }
+        } catch (Exception e) {
+            textArea.setCaretPosition(caret);
+            VimulatorUtilities.beep(view);
+        }
     }
 
     public void beginReverseSearch() {
@@ -216,19 +256,7 @@ public class VimulatorCommandLine extends JPanel implements DocumentListener, Ac
         char delim = prefix.charAt(0); // prefix is '/' or '?'
         reverse = (delim == '?') ^ reverse; // if delim = ? the search direction is inverted
         String pattern = ViSearchMatcher.extractRegexString(expr, delim);
-
-        Registers.setRegister('/', pattern);
-
-        try {
-            PatternSearchMatcher matcher = new PatternSearchMatcher(
-                    ViSearchMatcher.extractRegex(expr, delim), false, false);
-
-            SearchAndReplace.setSearchMatcher(matcher);
-            SearchAndReplace.setSearchFileSet(new CurrentBufferSet());
-            SearchAndReplace.setReverseSearch(reverse);
-            SearchAndReplace.find(view);
-        } catch (Exception e) {
-        }
+        search(pattern, reverse);
     }
 
     private void processShellCommand(String command) {

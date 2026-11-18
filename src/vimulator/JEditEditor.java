@@ -150,7 +150,7 @@ public class JEditEditor implements Editor {
     }
 
     @Override public void search(String javaRegex, boolean backward) {
-        beep();
+        VimulatorPlugin.getCommandLine(view).search(javaRegex, backward);
     }
 
     @Override public void beginEdit() { buf().beginCompoundEdit(); }

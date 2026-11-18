@@ -94,6 +94,13 @@ public class Smoke {
         {"a|bc", "Cxy<Esc>", "ax|y"},
         {"foo |bar", "cwxy<Esc>", "foo x|y"},
         {"  |ab\nc", "ccx<Esc>", "  |x\nc"},
+        // Task 12: * # and n/N direction
+        {"|foo bar foo baz foo", "*", "foo bar |foo baz foo"},
+        {"|foo bar foo baz foo", "*n", "foo bar foo baz |foo"},
+        {"foo bar foo baz |foo", "#", "foo bar |foo baz foo"},
+        {"foo bar foo baz |foo", "#n", "|foo bar foo baz foo"},
+        {"foo bar foo baz |foo", "#N", "foo bar foo baz |foo"},
+        {"|foo foobar foo", "g*", "foo |foobar foo"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},

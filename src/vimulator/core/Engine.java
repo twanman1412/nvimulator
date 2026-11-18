@@ -151,6 +151,7 @@ public final class Engine {
         registerVisualCommands();
         registerScrolling();
         registerInsertCommands();
+        registerStarSearch();
     }
 
     // ------------------------------------------------------------------ public API
@@ -991,5 +992,38 @@ public final class Engine {
             lastChange = change;
             lastInsertedText = text;
         }));
+    }
+
+    // ------------------------------------------------------------------ * # g* g#
+
+    private void starSearch(Command c, boolean backward, boolean whole) {
+        CharClass cc = charClass();
+        int caret = ed.caret();
+        int line = caretLine();
+        int ls = ed.lineStart(line), le = ed.lineEnd(line);
+        int i = caret;
+        if (i < le && cc.of(ed.charAt(i)) == CharClass.WORD) {
+            while (i > ls && cc.of(ed.charAt(i - 1)) == CharClass.WORD) i--;
+        } else {
+            while (i < le && cc.of(ed.charAt(i)) != CharClass.WORD) i++;
+            if (i >= le) {
+                ed.beep();
+                return;
+            }
+        }
+        int e = i;
+        while (e < le && cc.of(ed.charAt(e)) == CharClass.WORD) e++;
+        String quoted = java.util.regex.Pattern.quote(ed.text(i, e));
+        String regex = whole ? "\\b" + quoted + "\\b" : quoted;
+        ed.setCaret(i);
+        for (int n = 0; n < c.count(); n++) ed.search(regex, backward);
+        desiredCol = Motions.column(ed, ed.caret());
+    }
+
+    private void registerStarSearch() {
+        commands.put("*", new CommandSpec(false, c -> starSearch(c, false, true)));
+        commands.put("#", new CommandSpec(false, c -> starSearch(c, true, true)));
+        commands.put("g*", new CommandSpec(false, c -> starSearch(c, false, false)));
+        commands.put("g#", new CommandSpec(false, c -> starSearch(c, true, false)));
     }
 }
