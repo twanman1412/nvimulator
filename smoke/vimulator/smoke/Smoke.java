@@ -39,6 +39,16 @@ public class Smoke {
         {"|a,b,c,d", "f,;", "a,b|,c,d"},
         {"|(a [b] c)", "%", "(a [b] c|)"},
         {"ab|c\nd", "majmb`a", "ab|c\nd"},
+        // Task 6: operators
+        {"foo |bar baz", "dw", "foo |baz"},
+        {"foo |bar baz", "cwxy<Esc>", "foo x|y baz"},
+        {"|a\nb\nc\nd", "2dd", "|c\nd"},
+        {"|a b c d e f g", "2d3w", "|g"},
+        {"foo(|bar)", "dt)", "foo(|)"},
+        {"ab|c", "x", "a|b"},
+        {"a|bc def", "D", "|a"},
+        {"|a\nb\nc\nd", "x3ddu", "|\nb\nc\nd"},
+        {"a\n|b\nc", "dj", "|a"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},
