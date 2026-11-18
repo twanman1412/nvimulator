@@ -10,7 +10,9 @@ public final class Operators {
      * @return false when the operation failed (caller beeps)
      */
     public static boolean apply(Editor ed, Operator op, Range r, CharClass cc) {
-        if (r.type() == MotionType.LINEWISE) return applyLinewise(ed, op, ed.lineOfOffset(r.start()), ed.lineOfOffset(r.end()));
+        if (r.type() == MotionType.LINEWISE || op == Operator.SHIFT_LEFT || op == Operator.SHIFT_RIGHT
+                || op == Operator.REINDENT)
+            return applyLinewise(ed, op, ed.lineOfOffset(r.start()), ed.lineOfOffset(r.end()));
         int start = r.start();
         int end = r.type() == MotionType.INCLUSIVE ? inclusiveEnd(ed, r.end()) : r.end();
         return applyCharwise(ed, op, start, Math.max(start, end));
@@ -43,6 +45,12 @@ public final class Operators {
                 }
                 ed.setCaret(start);
                 ed.setMode(Mode.INSERT);
+                return true;
+            case TOGGLE_CASE:
+            case LOWERCASE:
+            case UPPERCASE:
+                if (end > start) ed.replace(start, end, Transforms.apply(op, text));
+                ed.setCaret(start);
                 return true;
             default:
                 return false;
@@ -90,6 +98,22 @@ public final class Operators {
                 ed.replace(s, ed.lineEnd(last), indent);
                 ed.setCaret(s + indent.length());
                 ed.setMode(Mode.INSERT);
+                return true;
+            }
+            case SHIFT_RIGHT:
+            case SHIFT_LEFT:
+            case REINDENT: {
+                if (op == Operator.REINDENT) ed.reindentLines(first, last);
+                else ed.shiftLines(first, last, op == Operator.SHIFT_RIGHT ? 1 : -1);
+                ed.setCaret(Motions.firstNonBlank(ed, first));
+                return true;
+            }
+            case TOGGLE_CASE:
+            case LOWERCASE:
+            case UPPERCASE: {
+                int s = ed.lineStart(first), e = ed.lineEnd(last);
+                ed.replace(s, e, Transforms.apply(op, ed.text(s, e)));
+                ed.setCaret(s);
                 return true;
             }
             default:

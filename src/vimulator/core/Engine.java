@@ -52,8 +52,10 @@ public final class Engine {
     }
 
     /** Operator keys. */
-    static final Map<String, Operator> OPERATORS = new HashMap<>(Map.of(
-            "d", Operator.DELETE, "c", Operator.CHANGE, "y", Operator.YANK));
+    static final Map<String, Operator> OPERATORS = Map.of(
+            "d", Operator.DELETE, "c", Operator.CHANGE, "y", Operator.YANK,
+            ">", Operator.SHIFT_RIGHT, "<", Operator.SHIFT_LEFT, "=", Operator.REINDENT,
+            "g~", Operator.TOGGLE_CASE, "gu", Operator.LOWERCASE, "gU", Operator.UPPERCASE);
 
     /** Shorthands parsed as an operator plus a motion; a null motion means the doubled (linewise) form. */
     private static final Map<String, String[]> OP_ALIASES = Map.of(
@@ -120,6 +122,7 @@ public final class Engine {
         registerBasicMotions();
         registerFindMotions();
         registerTextObjects();
+        registerEditCommands();
     }
 
     // ------------------------------------------------------------------ public API
@@ -532,5 +535,75 @@ public final class Engine {
         textObjects.put("ap", c -> TextObjects.paragraph(c.ed, c.caret, c.count, true));
         textObjects.put("it", c -> TextObjects.tag(c.ed, c.caret, c.count, false));
         textObjects.put("at", c -> TextObjects.tag(c.ed, c.caret, c.count, true));
+    }
+
+    /** Runs a text-changing command as one undo unit and remembers it for {@code .}. */
+    private void change(Command c, Runnable body) {
+        ed.beginEdit();
+        try {
+            body.run();
+        } finally {
+            ed.endEdit();
+        }
+        lastChange = c;
+    }
+
+    private void registerEditCommands() {
+        commands.put("~", new CommandSpec(false, c -> {
+            int caret = ed.caret();
+            int le = ed.lineEnd(ed.lineOfOffset(caret));
+            if (caret >= le) return;
+            int end = (int) Math.min((long) caret + c.count(), le);
+            change(c, () -> ed.replace(caret, end, Transforms.toggleCase(ed.text(caret, end))));
+            ed.setCaret(Math.min(end, Motions.lastChar(ed, ed.lineOfOffset(caret))));
+            desiredCol = Motions.column(ed, ed.caret());
+        }));
+        commands.put("J", new CommandSpec(false, c -> join(c, true)));
+        commands.put("gJ", new CommandSpec(false, c -> join(c, false)));
+        commands.put("<C-a>", new CommandSpec(false, c -> increment(c, c.count())));
+        commands.put("<C-x>", new CommandSpec(false, c -> increment(c, -c.count())));
+        commands.put("r", new CommandSpec(true, c -> {
+            int caret = ed.caret();
+            long end = (long) caret + c.count();
+            if (end > ed.lineEnd(ed.lineOfOffset(caret))) {
+                ed.beep();
+                return;
+            }
+            change(c, () -> ed.replace(caret, (int) end, String.valueOf(c.arg).repeat(c.count())));
+            ed.setCaret((int) end - 1);
+        }));
+    }
+
+    private void join(Command c, boolean spaces) {
+        int line = ed.lineOfOffset(ed.caret());
+        if (line + 1 >= ed.lineCount()) {
+            ed.beep();
+            return;
+        }
+        int joins = Math.min(Math.max(c.count(), 2) - 1, ed.lineCount() - 1 - line);
+        int[] caret = {ed.caret()};
+        change(c, () -> {
+            for (int i = 0; i < joins; i++) caret[0] = Transforms.join(ed, line, spaces);
+        });
+        ed.setCaret(caret[0]);
+        desiredCol = Motions.column(ed, caret[0]);
+    }
+
+    private void increment(Command c, int delta) {
+        int[] num = Transforms.findNumber(ed, ed.caret());
+        if (num == null) {
+            ed.beep();
+            return;
+        }
+        long value;
+        try {
+            value = Math.addExact(Long.parseLong(ed.text(num[0], num[1])), delta);
+        } catch (NumberFormatException | ArithmeticException e) {
+            ed.beep();
+            return;
+        }
+        String s = Long.toString(value);
+        change(c, () -> ed.replace(num[0], num[1], s));
+        ed.setCaret(num[0] + s.length() - 1);
     }
 }

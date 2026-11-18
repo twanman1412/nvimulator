@@ -55,6 +55,12 @@ public class Smoke {
         {"foo b|ar baz", "ciwqq<Esc>", "foo q|q baz"},
         {"<a><b>|x</b></a>", "dit", "<a><b>|</b></a>"},
         {"f(a, |b)", "di(", "f(|)"},
+        // Task 8: case / shift / join / increment / replace
+        {"a |bc d", "gUiw", "a |BC d"},
+        {"|ab", "~", "A|b"},
+        {"|a\n  b", "J", "a| b"},
+        {"x |9 y", "<C-a>", "x 1|0 y"},
+        {"|abc", "2rx", "x|xc"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},

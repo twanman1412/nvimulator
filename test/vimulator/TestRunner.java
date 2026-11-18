@@ -16,6 +16,7 @@ public class TestRunner {
         vimulator.core.FindMotionTest.class,
         vimulator.core.OperatorTest.class,
         vimulator.core.TextObjectTest.class,
+        vimulator.core.TransformTest.class,
     };
 
     public static void main(String[] args) throws Exception {
