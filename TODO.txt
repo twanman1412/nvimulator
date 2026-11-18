@@ -1,8 +1,8 @@
 This list is not complete
 --------------------------------------------------------------------------------
 - Insert visual style
-- Fix broken D E
-- Bypass "execute x times" for G G
 - Fix history in : and /
-- Go to character commands (f,F,t,T) with PRESSED keys (not TYPED)
-
+- Registers ("a, "+) and macros (q, @)
+- d/pattern and dn (search as an operator motion)
+- . after a visual-mode operator, . for p/P
+- Linewise p on the last buffer line silently fails (inserts past the buffer end)

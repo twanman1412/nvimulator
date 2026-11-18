@@ -29,10 +29,6 @@
 <!DOCTYPE ACTIONS SYSTEM "actions.dtd">
 
 <ACTIONS>
-	<ACTION NAME="skip" NO_RECORD="TRUE">
-		<CODE>
-		</CODE>
-	</ACTION>
 
 	<ACTION NAME="toggle-vi-mode">
 		<CODE>
@@ -67,188 +63,9 @@
 		</CODE>
 	</ACTION>
 
-	<ACTION NAME="vi-insert-mode">
-		<CODE>
-			vimulator.VimulatorUtilities.setInsertMode(view);
-		</CODE>
-	</ACTION>
-
 	<ACTION NAME="vi-replace-mode">
 		<CODE>
 			vimulator.VimulatorUtilities.setReplaceMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-visual-mode">
-		<CODE>
-			vimulator.VimulatorUtilities.setVisualMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-visual-block-mode">
-		<CODE>
-			vimulator.VimulatorUtilities.setVisualBlockMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-visual-line-mode">
-		<CODE>
-			vimulator.VimulatorUtilities.setVisualLineMode(view);
-            vimulator.VimulatorUtilities.selectLine(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-home-abs" NO_REPEAT="TRUE">
-		<CODE>
-			textArea.goToStartOfLine(false);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-end-abs" NO_REPEAT="TRUE">
-		<CODE>
-			textArea.moveCaretPosition(
-                vimulator.VimulatorUtilities.getLastAllowedOffset(view, textArea)
-                , false);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-home-ws" NO_REPEAT="TRUE">
-		<CODE>
-			textArea.goToStartOfWhiteSpace(false);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-select-home-ws" NO_REPEAT="TRUE">
-		<CODE>
-			textArea.goToStartOfWhiteSpace(true);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-prev-line-ws-start">
-		<CODE>
-			if (textArea.getCaretLine() == 0)
-			{
-				Toolkit.getDefaultToolkit().beep();
-				return;
-			}
-			textArea.moveCaretPosition(textArea.getLineStartOffset(
-				textArea.getCaretLine() - 1));
-			textArea.goToStartOfWhiteSpace(false);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-next-line-ws-start">
-		<CODE>
-			textArea.goToNextLine();
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-word-end">
-		<CODE>
-			vimulator.VimulatorUtilities.goToWordEnd(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-select-word-end">
-		<CODE>
-			vimulator.VimulatorUtilities.selectWordEnd(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-word-start">
-		<CODE>
-			vimulator.VimulatorUtilities.goToWordStart(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-select-word-start">
-		<CODE>
-			vimulator.VimulatorUtilities.selectWordStart(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-next-word">
-		<CODE>
-			vimulator.VimulatorUtilities.goToNextWordStart(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-select-next-word">
-		<CODE>
-			vimulator.VimulatorUtilities.selectNextWordStart(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-join-lines">
-		<CODE>
-			end = vimulator.VimulatorUtilities.joinLines(textArea, true);
-			if (end != -1) textArea.moveCaretPosition(end);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-append">
-		<CODE>
-			vimulator.VimulatorUtilities.append(view, textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-yank-line">
-		<CODE>
-			vimulator.VimulatorUtilities.yankLine(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-yank-end-line">
-		<CODE>
-			vimulator.VimulatorUtilities.yankEndLine(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-yank-start-line">
-		<CODE>
-			vimulator.VimulatorUtilities.yankStartLine(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-yank-word-end">
-		<CODE>
-			vimulator.VimulatorUtilities.yankWordEnd(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-yank-word-start">
-		<CODE>
-			vimulator.VimulatorUtilities.yankWordStart(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-delete-line">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteLine(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-delete-end-line">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteEndLine(view, textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-delete-start-line">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteStartLine(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-delete-word-end">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteWordEnd(view, textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-delete-word-start">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteWordStart(view, textArea);
 		</CODE>
 	</ACTION>
 
@@ -268,80 +85,6 @@
 	<ACTION NAME="vi-paste-before">
 		<CODE>
 			vimulator.VimulatorUtilities.paste(textArea, buffer, false);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-append-ws-end">
-		<CODE>
-			vimulator.VimulatorUtilities.setInsertMode(view);
-			textArea.goToEndOfWhiteSpace(false);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-insert-ws-start">
-		<CODE>
-			vimulator.VimulatorUtilities.setInsertMode(view);
-			textArea.goToStartOfWhiteSpace(false);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-change-line">
-		<CODE>
-			textArea.goToStartOfWhiteSpace(false);
-			vimulator.VimulatorUtilities.deleteEndLine(view, textArea);
-			vimulator.VimulatorUtilities.setInsertMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-change-end-line">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteEndLine(view, textArea);
-			vimulator.VimulatorUtilities.setInsertMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-change-start-line">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteStartLine(textArea);
-			vimulator.VimulatorUtilities.setInsertMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-change-word-end">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteWordEnd(view, textArea);
-			vimulator.VimulatorUtilities.setInsertMode(view);
-            // TODO correct caret position when deleting at end of line
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-change-word-start">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteWordStart(view, textArea);
-			vimulator.VimulatorUtilities.setInsertMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-change-char">
-		<CODE>
-			vimulator.VimulatorUtilities.deleteChar(textArea);
-			vimulator.VimulatorUtilities.setInsertMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-open-prev-line">
-		<CODE>
-			vimulator.VimulatorUtilities.setInsertMode(view);
-            vimulator.VimulatorUtilities.insertEnterAndIndentBefore(textArea, buffer);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-open-next-line">
-		<CODE>
-			vimulator.VimulatorUtilities.setInsertMode(view);
-			line = textArea.getCaretLine();
-			textArea.moveCaretPosition(textArea.getLineEndOffset(line)-1);
-            textArea.insertEnterAndIndent();
 		</CODE>
 	</ACTION>
 
@@ -424,149 +167,10 @@
 		</CODE>
 	</ACTION>
 
-	<ACTION NAME="vi-go-to-line">
-		<CODE>
-			vimulator.VimulatorUtilities.goToLine(view, textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-select-to-line">
-		<CODE>
-			vimulator.VimulatorUtilities.goToLine(view, textArea, true);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-replace-char">
-		<CODE>
-            view.getInputHandler().readNextChar("",
-                "vimulator.VimulatorUtilities.replaceChar(textArea,__char__);");
-		</CODE>
-	</ACTION>
-
 	<ACTION NAME="vi-replace-selection">
 		<CODE>
             view.getInputHandler().readNextChar("",
                 "vimulator.VimulatorUtilities.replaceSelection(textArea,__char__);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-set-mark">
-		<CODE>
-            view.getInputHandler().readNextChar("",
-                "vimulator.VimulatorUtilities.setMark(textArea,__char__);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-find-mark">
-		<CODE>
-            view.getInputHandler().readNextChar("",
-                "vimulator.VimulatorUtilities.findMark(textArea,__char__,true,false);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-find-mark-line">
-		<CODE>
-            view.getInputHandler().readNextChar("",
-                "vimulator.VimulatorUtilities.findMark(textArea,__char__,false,false);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-select-find-mark">
-		<CODE>
-            view.getInputHandler().readNextChar("",
-                "vimulator.VimulatorUtilities.findMark(textArea,__char__,true,true);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-select-find-mark-line">
-		<CODE>
-            view.getInputHandler().readNextChar("",
-                "vimulator.VimulatorUtilities.findMark(textArea,__char__,false,true);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-find-char">
-		<CODE>
-			view.getInputHandler().readNextChar("",
-				"vimulator.VimulatorUtilities.findChar(view,__char__,false,false);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-find-char-reverse">
-		<CODE>
-			view.getInputHandler().readNextChar("",
-				"vimulator.VimulatorUtilities.findChar(view,__char__,true,false);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-find-until-char">
-		<CODE>
-			view.getInputHandler().readNextChar("",
-				"vimulator.VimulatorUtilities.findChar(view,__char__,false,true);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-find-until-char-reverse">
-		<CODE>
-			view.getInputHandler().readNextChar("",
-				"vimulator.VimulatorUtilities.findChar(view,__char__,true,true);");
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-repeat-find-char">
-		<CODE>
-			vimulator.VimulatorUtilities.repeatFindChar(view,false);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-repeat-find-char-opposite">
-		<CODE>
-			vimulator.VimulatorUtilities.repeatFindChar(view,true);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-prev-col">
-		<CODE>
-            vimulator.VimulatorUtilities.goToPrevCol(view, textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-next-col">
-		<CODE>
-            vimulator.VimulatorUtilities.goToNextCol(view, textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-select-prev-col">
-		<CODE>
-            vimulator.VimulatorUtilities.selectPrevCol(view, textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-select-next-col">
-		<CODE>
-            vimulator.VimulatorUtilities.selectNextCol(view, textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-yank-selection">
-		<CODE>
-            vimulator.VimulatorUtilities.yankSelection(textArea);
-			vimulator.VimulatorUtilities.setCommandMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-delete-selection">
-		<CODE>
-            vimulator.VimulatorUtilities.deleteSelection(textArea);
-			vimulator.VimulatorUtilities.setCommandMode(view);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-change-selection">
-		<CODE>
-            vimulator.VimulatorUtilities.deleteSelection(textArea);
-			vimulator.VimulatorUtilities.setInsertMode(view);
 		</CODE>
 	</ACTION>
 
@@ -581,20 +185,6 @@
 				"vimulator.msg.curr-line-status", args);
 
 			vimulator.VimulatorUtilities.setStatus(view, status);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-line-next-line">
-		<CODE>
-			textArea.goToNextLine(false);
-            vimulator.VimulatorUtilities.selectLine(textArea);
-		</CODE>
-	</ACTION>
-
-	<ACTION NAME="vi-line-prev-line">
-		<CODE>
-			textArea.goToPrevLine(false);
-            vimulator.VimulatorUtilities.selectLine(textArea);
 		</CODE>
 	</ACTION>
 
@@ -616,14 +206,4 @@
 		</CODE>
 	</ACTION>
 
-	<ACTION NAME="vi-matching-bracket">
-		<CODE>
-            vimulator.VimulatorUtilities.goToMatchingBracket(textArea, buffer);
-		</CODE>
-	</ACTION>
-	<ACTION NAME="vi-select-matching-bracket">
-		<CODE>
-            vimulator.VimulatorUtilities.selectMatchingBracket(textArea, buffer);
-		</CODE>
-	</ACTION>
 </ACTIONS>

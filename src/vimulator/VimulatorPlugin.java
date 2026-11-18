@@ -165,13 +165,7 @@ public class VimulatorPlugin extends EBPlugin {
         return (VimulatorCommandLine) commandLines.get(view);
     }
 
-    public static CharacterSearch getLastFindChar() {
-        return lastFindChar;
-    }
 
-    public static void setLastFindChar(char ch, boolean reverse, boolean until) {
-        lastFindChar = new CharacterSearch(ch, reverse, until);
-    }
 
     // private members
     private static VimulatorInputHandler rootHandler = new VimulatorInputHandler(null);
@@ -179,7 +173,6 @@ public class VimulatorPlugin extends EBPlugin {
     private static Hashtable commandLines = new Hashtable();
     private static Hashtable handlers = new Hashtable();
 
-    private static CharacterSearch lastFindChar;
 
     private static void updateBufferStatus(Buffer buffer, String status, List<View> views) {
         if (views == null)
@@ -272,15 +265,4 @@ public class VimulatorPlugin extends EBPlugin {
         }
     }
 
-    static class CharacterSearch {
-        public final char ch;
-        public final boolean reverse;
-        public final boolean until;
-
-        CharacterSearch(char ch, boolean reverse, boolean until) {
-            this.ch = ch;
-            this.reverse = reverse;
-            this.until = until;
-        }
-    }
 }

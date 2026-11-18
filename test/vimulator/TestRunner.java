@@ -23,6 +23,7 @@ public class TestRunner {
         vimulator.core.StarSearchTest.class,
         vimulator.core.InsertEditsTest.class,
         vimulator.core.ExTest.class,
+        vimulator.KeymapConsistencyTest.class,
     };
 
     public static void main(String[] args) throws Exception {
