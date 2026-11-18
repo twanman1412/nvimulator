@@ -29,7 +29,7 @@
 			deprecation="on"
 			includeJavaRuntime="yes"
 			release="17"
-            excludes="bin/**,test/**,scripts/**,build/**"
+            excludes="bin/**,test/**,scripts/**,build/**,smoke/**"
 		>
 			<classpath refid="project.class.path"/>
 		</javac>

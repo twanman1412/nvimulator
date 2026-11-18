@@ -36,6 +36,7 @@ public class VimulatorInputHandler extends InputHandler {
     private int mode;
 
     private InputHandler currentHandler;
+    private vimulator.core.Engine engine;
     private Map<Integer, Hashtable> bindingOfMode;
     private Map<Integer, InputHandler> handlerOfMode;
 
@@ -56,6 +57,8 @@ public class VimulatorInputHandler extends InputHandler {
         super(view);
         this.bindings = new Hashtable<>();
         bindingOfMode = chain.bindingOfMode;
+        if (view != null)
+            engine = new vimulator.core.Engine(new JEditEditor(view));
 
         initHandlers();
         setMode(chain.getMode());
@@ -63,8 +66,11 @@ public class VimulatorInputHandler extends InputHandler {
 
     private void initHandlers(){
         handlerOfMode = new Hashtable<>();
-        for(int m : VimulatorConstants.editorModes)
-            handlerOfMode.put(m, new BindingInputHandler(view, m, bindingOfMode.get(m)));
+        for(int m : VimulatorConstants.editorModes) {
+            BindingInputHandler h = new BindingInputHandler(view, m, bindingOfMode.get(m));
+            h.setEngine(engine);
+            handlerOfMode.put(m, h);
+        }
         // manually bind insert and replace to the special handler
         handlerOfMode.put(
             VimulatorConstants.INSERT,
@@ -75,6 +81,11 @@ public class VimulatorInputHandler extends InputHandler {
 
     public int getMode() {
         return mode;
+    }
+
+    /** The per-view command engine, or null for the root handler. */
+    public vimulator.core.Engine getEngine() {
+        return engine;
     }
 
     public void setMode(int mode) {

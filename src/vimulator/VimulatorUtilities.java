@@ -58,7 +58,11 @@ public class VimulatorUtilities {
 
         JEditTextArea textArea = view.getTextArea();
         
-        // when exiting insert mode, move one left
+        // when exiting insert mode, let the engine record the inserted text, then move one left
+        VimulatorInputHandler handler = (VimulatorInputHandler) view.getInputHandler();
+        if ((handler.getMode() & VimulatorConstants.INSERT) != 0
+                && (mode & VimulatorConstants.INSERT) == 0 && handler.getEngine() != null)
+            handler.getEngine().onInsertExit();
         if ((((VimulatorInputHandler) view.getInputHandler()).getMode()
                 & VimulatorConstants.INSERT) != 0)
             textArea.moveCaretPosition(

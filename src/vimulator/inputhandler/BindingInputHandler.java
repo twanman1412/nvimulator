@@ -32,8 +32,19 @@ import org.gjt.sp.jedit.gui.HistoryModel;
 import org.gjt.sp.jedit.gui.InputHandler;
 import org.gjt.sp.jedit.gui.KeyEventTranslator.Key;
 import org.gjt.sp.util.Log;
+import vimulator.core.Engine;
+import vimulator.core.KeyTokens;
 
 public class BindingInputHandler extends InputHandler {
+
+    /** Engine that gets first pick of every key in this mode; null when there is no view. */
+    private Engine engine;
+    /** Key events fed to the engine since its last DONE, replayed to the legacy bindings on REJECTED. */
+    private final List<KeyEvent> engineKeys = new ArrayList<>();
+
+    public void setEngine(Engine engine) {
+        this.engine = engine;
+    }
 
     public BindingInputHandler(View view, int mode) {
         super(view);
@@ -250,9 +261,42 @@ public class BindingInputHandler extends InputHandler {
 
     @Override
     public void processKeyEvent(java.awt.event.KeyEvent evt, int from, boolean global) {
-        if (evt.getID() == java.awt.event.KeyEvent.KEY_PRESSED) {
+        if (engine == null || legacyPending()) {
+            legacy(evt);
+            return;
+        }
+        String token = KeyTokens.of(evt);
+        if (token == null) {
+            if (engine.isIdle()) legacy(evt);
+            else evt.consume();
+            return;
+        }
+        engineKeys.add(evt);
+        switch (engine.feed(token)) {
+            case PENDING:
+                evt.consume();
+                break;
+            case DONE:
+                engineKeys.clear();
+                evt.consume();
+                break;
+            default: // REJECTED: the sequence belongs to the legacy bindings
+                List<KeyEvent> replay = new ArrayList<>(engineKeys);
+                engineKeys.clear();
+                for (KeyEvent e : replay) legacy(e);
+                evt.consume();
+        }
+    }
+
+    /** True while the legacy table is in the middle of a sequence (prefix key, count or char argument). */
+    private boolean legacyPending() {
+        return currentBindings != bindings || readNextChar != null || requestedRepeat;
+    }
+
+    private void legacy(KeyEvent evt) {
+        if (evt.getID() == KeyEvent.KEY_PRESSED) {
             commandKeyPressed(evt);
-        } else if (evt.getID() == java.awt.event.KeyEvent.KEY_TYPED) {
+        } else if (evt.getID() == KeyEvent.KEY_TYPED) {
             commandKeyTyped(evt);
         }
     }
