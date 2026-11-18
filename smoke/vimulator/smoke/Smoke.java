@@ -61,6 +61,16 @@ public class Smoke {
         {"|a\n  b", "J", "a| b"},
         {"x |9 y", "<C-a>", "x 1|0 y"},
         {"|abc", "2rx", "x|xc"},
+        // Task 9: visual modes
+        {"|foo bar", "vlld", "| bar"},
+        {"foo b|ar baz", "viwd", "foo | baz"},
+        {"|a\nb\nc", "Vjd", "|c"},
+        {"|abc", "vl~", "|ABc"},
+        {"a|bcd", "vllohd", "|"},
+        {"|abc", "vl<Esc>gvd", "|c"},
+        {"|ab\ncd\nef", "<C-v>jld", "\n|\nef"}, // block delete; caret placed by jEdit
+        {"|ab\ncd", "<C-v>jIx<Esc>", "|xab\nxcd"}, // legacy block insert still works
+        {"|ab\ncd", "ylvlp", "|a\ncd"}, // legacy visual paste still works
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},

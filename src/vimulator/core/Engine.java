@@ -64,6 +64,16 @@ public final class Engine {
             "s", new String[] {"c", "l"}, "S", new String[] {"c", null},
             "Y", new String[] {"y", null});
 
+    /** Keys that apply an operator to the selection in visual modes, mapped to the operator key. */
+    private static final Map<String, String> VISUAL_OPS = Map.ofEntries(
+            Map.entry("d", "d"), Map.entry("x", "d"), Map.entry("c", "c"), Map.entry("s", "c"),
+            Map.entry("y", "y"), Map.entry(">", ">"), Map.entry("<", "<"), Map.entry("=", "="),
+            Map.entry("~", "g~"), Map.entry("u", "gu"), Map.entry("U", "gU"),
+            Map.entry("g~", "g~"), Map.entry("gu", "gu"), Map.entry("gU", "gU"));
+
+    record Visual(int anchor, int caret, Mode mode) {
+    }
+
     /** Motions whose next key is a character argument. */
     private static final Set<String> ARG_MOTIONS = Set.of("f", "F", "t", "T", "`", "'");
 
@@ -112,6 +122,10 @@ public final class Engine {
     private final Map<String, TextObjectFn> textObjects = new HashMap<>();
     /** The last command that changed text, for {@code .}. */
     Command lastChange;
+    private final Map<String, CommandSpec> visualCommands = new HashMap<>();
+    /** Visual anchor; -1 when unknown (then the caret is used). */
+    private int anchor = -1;
+    private Visual lastVisual;
 
     /** Column vertical motions aim for; Integer.MAX_VALUE means "end of line". */
     int desiredCol;
@@ -123,11 +137,13 @@ public final class Engine {
         registerFindMotions();
         registerTextObjects();
         registerEditCommands();
+        registerVisualCommands();
     }
 
     // ------------------------------------------------------------------ public API
 
     public Result feed(String token) {
+        if (pending.isEmpty() && !ed.mode().isVisual()) anchor = -1;
         if (pending.isEmpty() && ed.caret() != lastEngineCaret) {
             // the caret was moved by someone else (mouse, legacy action): resync curswant
             desiredCol = Motions.column(ed, ed.caret());
@@ -168,7 +184,11 @@ public final class Engine {
 
     /** {first, last} lines of the last visual selection, or null. */
     public int[] lastVisualLines() {
-        return null;
+        if (lastVisual == null) return null;
+        int len = ed.length();
+        int a = Math.min(Math.min(lastVisual.anchor, lastVisual.caret), len);
+        int b = Math.min(Math.max(lastVisual.anchor, lastVisual.caret), len);
+        return new int[] {ed.lineOfOffset(a), ed.lineOfOffset(b)};
     }
 
     // ------------------------------------------------------------------ parsing
@@ -227,6 +247,7 @@ public final class Engine {
         Tokens t = new Tokens(list);
         int count1 = t.count();
         if (t.end()) return Parse.PENDING;
+        if (ed.mode().isVisual()) return parseVisual(t, count1);
         String key = t.key();
         if (key == null) return Parse.PENDING;
 
@@ -256,6 +277,38 @@ public final class Engine {
                 arg = argChar(t.next());
             }
             return Parse.of(new Command(count1, 0, null, false, null, null, key, arg));
+        }
+        return Parse.REJECT;
+    }
+
+    /** Visual modes: operators act on the selection, motions extend it, i/a select objects. */
+    private Parse parseVisual(Tokens t, int count1) {
+        String tok = t.peek();
+        if (tok.equals("i") || tok.equals("a")) {
+            t.next();
+            if (t.end()) return Parse.PENDING;
+            String obj = tok + t.next();
+            if (!textObjects.containsKey(obj)) return Parse.CANCEL_BEEP;
+            return Parse.of(new Command(count1, 0, null, false, null, obj, null, '\0'));
+        }
+        String key = t.key();
+        if (key == null) return Parse.PENDING;
+        String opKey = VISUAL_OPS.get(key);
+        if (opKey != null) {
+            if (ed.mode() == Mode.VISUAL_BLOCK && (opKey.equals("c") || opKey.equals("="))) return Parse.REJECT;
+            return Parse.of(new Command(count1, 0, opKey, false, null, null, null, '\0'));
+        }
+        if (visualCommands.containsKey(key)) {
+            return Parse.of(new Command(count1, 0, null, false, null, null, key, '\0'));
+        }
+        if (motions.containsKey(key)) {
+            char arg = '\0';
+            if (ARG_MOTIONS.contains(key)) {
+                Parse bad = argProblem(t);
+                if (bad != null) return bad;
+                arg = argChar(t.next());
+            }
+            return Parse.of(new Command(count1, 0, null, false, key, null, null, arg));
         }
         return Parse.REJECT;
     }
@@ -304,6 +357,10 @@ public final class Engine {
     // ------------------------------------------------------------------ execution
 
     private void execute(Command c) {
+        if (ed.mode().isVisual()) {
+            executeVisual(c);
+            return;
+        }
         if (c.opKey != null) {
             executeOperator(c);
         } else if (c.motionKey != null) {
@@ -605,5 +662,147 @@ public final class Engine {
         String s = Long.toString(value);
         change(c, () -> ed.replace(num[0], num[1], s));
         ed.setCaret(num[0] + s.length() - 1);
+    }
+
+    // ------------------------------------------------------------------ visual modes
+
+    private void executeVisual(Command c) {
+        if (anchor < 0 || anchor > ed.length()) anchor = ed.caret();
+        if (c.objectKey != null) {
+            selectObject(c);
+        } else if (c.opKey != null) {
+            visualOperator(c);
+        } else if (c.cmdKey != null) {
+            visualCommands.get(c.cmdKey).run.accept(c);
+        } else {
+            MotionSpec s = motions.get(c.motionKey);
+            int target = s.fn.target(ctx(c, false));
+            if (target < 0) {
+                ed.beep();
+                return;
+            }
+            moveTo(target, s);
+            updateSelection();
+        }
+    }
+
+    private void updateSelection() {
+        ed.setSelection(anchor, ed.caret(), ed.mode());
+        lastVisual = new Visual(anchor, ed.caret(), ed.mode());
+    }
+
+    private void enterVisual(Mode m) {
+        Mode cur = ed.mode();
+        if (cur == m) {
+            ed.setMode(Mode.NORMAL);
+            anchor = -1;
+            return;
+        }
+        if (!cur.isVisual() || anchor < 0) anchor = ed.caret();
+        ed.setMode(m);
+        updateSelection();
+    }
+
+    private void selectObject(Command c) {
+        Range r = textObjects.get(c.objectKey).select(ctx(c, false));
+        if (r == null) {
+            ed.beep();
+            return;
+        }
+        Mode mode = ed.mode();
+        int caret;
+        if (r.type() == MotionType.LINEWISE) {
+            if (mode != Mode.VISUAL_LINE) ed.setMode(Mode.VISUAL_LINE);
+            caret = r.end();
+        } else {
+            if (mode == Mode.VISUAL_LINE) ed.setMode(Mode.VISUAL);
+            caret = r.type() == MotionType.EXCLUSIVE ? r.start() : r.end();
+        }
+        anchor = r.start();
+        ed.setCaret(caret);
+        desiredCol = Motions.column(ed, caret);
+        updateSelection();
+    }
+
+    private void visualOperator(Command c) {
+        Mode mode = ed.mode();
+        Operator op = OPERATORS.get(c.opKey);
+        int caret = ed.caret();
+        lastVisual = new Visual(anchor, caret, mode);
+        if (mode == Mode.VISUAL_BLOCK) {
+            ed.beginEdit();
+            try {
+                ed.blockOperator(op);
+            } finally {
+                ed.endEdit();
+            }
+            ed.setMode(Mode.NORMAL);
+            anchor = -1;
+            return;
+        }
+        int a = Math.min(anchor, caret), b = Math.min(Math.max(anchor, caret), Math.max(0, ed.length()));
+        Range r = new Range(a, b, mode == Mode.VISUAL_LINE ? MotionType.LINEWISE : MotionType.INCLUSIVE);
+        ed.setMode(Mode.NORMAL);
+        anchor = -1;
+        boolean ok;
+        ed.beginEdit();
+        try {
+            ok = Operators.apply(ed, op, r, charClass());
+        } finally {
+            ed.endEdit();
+        }
+        if (!ok) ed.beep();
+    }
+
+    private void visualJoin(boolean spaces) {
+        int caret = ed.caret();
+        int first = ed.lineOfOffset(Math.min(anchor, caret)), last = ed.lineOfOffset(Math.max(anchor, caret));
+        lastVisual = new Visual(anchor, caret, ed.mode());
+        ed.setMode(Mode.NORMAL);
+        anchor = -1;
+        if (first + 1 >= ed.lineCount()) {
+            ed.beep();
+            return;
+        }
+        int joins = Math.max(last - first, 1);
+        int[] pos = {caret};
+        ed.beginEdit();
+        try {
+            for (int i = 0; i < joins && first + 1 < ed.lineCount(); i++) pos[0] = Transforms.join(ed, first, spaces);
+        } finally {
+            ed.endEdit();
+        }
+        ed.setCaret(pos[0]);
+    }
+
+    private void registerVisualCommands() {
+        commands.put("v", new CommandSpec(false, c -> enterVisual(Mode.VISUAL)));
+        commands.put("V", new CommandSpec(false, c -> enterVisual(Mode.VISUAL_LINE)));
+        commands.put("<C-v>", new CommandSpec(false, c -> enterVisual(Mode.VISUAL_BLOCK)));
+        commands.put("gv", new CommandSpec(false, c -> {
+            if (lastVisual == null) {
+                ed.beep();
+                return;
+            }
+            int max = Math.max(0, ed.length() - 1);
+            anchor = Math.min(lastVisual.anchor, max);
+            ed.setMode(lastVisual.mode);
+            ed.setCaret(Math.min(lastVisual.caret, max));
+            updateSelection();
+        }));
+        visualCommands.put("v", new CommandSpec(false, c -> enterVisual(Mode.VISUAL)));
+        visualCommands.put("V", new CommandSpec(false, c -> enterVisual(Mode.VISUAL_LINE)));
+        visualCommands.put("<C-v>", new CommandSpec(false, c -> enterVisual(Mode.VISUAL_BLOCK)));
+        CommandSpec swap = new CommandSpec(false, c -> {
+            int caret = ed.caret();
+            ed.setCaret(anchor);
+            anchor = caret;
+            desiredCol = Motions.column(ed, ed.caret());
+            updateSelection();
+        });
+        visualCommands.put("o", swap);
+        visualCommands.put("O", swap);
+        visualCommands.put("J", new CommandSpec(false, c -> visualJoin(true)));
+        visualCommands.put("gJ", new CommandSpec(false, c -> visualJoin(false)));
     }
 }

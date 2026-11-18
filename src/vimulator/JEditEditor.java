@@ -116,7 +116,27 @@ public class JEditEditor implements Editor {
     }
 
     @Override public void blockOperator(Operator op) {
-        beep();
+        JEditTextArea ta = ta();
+        switch (op) {
+            case DELETE:
+            case CHANGE:
+                Registers.setRegister('y', ta.getSelectedText());
+                ta.setSelectedText("");
+                break;
+            case YANK:
+                Registers.setRegister('y', ta.getSelectedText());
+                break;
+            case SHIFT_RIGHT: ta.shiftIndentRight(); break;
+            case SHIFT_LEFT: ta.shiftIndentLeft(); break;
+            case UPPERCASE: ta.toUpperCase(); break;
+            case LOWERCASE: ta.toLowerCase(); break;
+            case TOGGLE_CASE:
+                for (Selection s : ta.getSelection())
+                    ta.setSelectedText(s, vimulator.core.Transforms.toggleCase(ta.getSelectedText(s)));
+                break;
+            default:
+                beep();
+        }
     }
 
     @Override public void search(String javaRegex, boolean backward) {
