@@ -29,6 +29,8 @@ public interface Editor extends TextModel {
     void endEdit();
     void beep();
     String extraWordChars();
+    /** False for read-only buffers: text-changing commands beep instead. */
+    boolean editable();
 
     int firstVisibleLine();
     int visibleLineCount();

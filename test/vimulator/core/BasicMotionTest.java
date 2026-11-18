@@ -8,6 +8,8 @@ public class BasicMotionTest {
     public static void testLineEnds() { check("  a|bc", "0", "|  abc"); check("  a|bc", "^", "  |abc"); check("|ab\ncd", "2$", "ab\nc|d"); }
     public static void testLineMotions() { check("a\n|b\n  c", "+", "a\nb\n  |c"); check("  a\n|b", "-", "  |a\nb"); check("a\nb\n|  c", "gg", "|a\nb\n  c"); check("|a\nb\n  c", "G", "a\nb\n  |c"); check("|a\nb\nc", "2G", "a\n|b\nc"); check("|a\nb\nc", "2gg", "a\n|b\nc"); }
     public static void testZeroIsMotionUnlessCounting() { check("ab|c\n" + "x\n".repeat(12), "10j", "abc\n" + "x\n".repeat(9) + "|x\n" + "x\n".repeat(2)); check("ab|c", "0", "|abc"); }
-    public static void testHugeCount() { checkBeep("|a\nb", "99999999999j"); }
+    public static void testHugeCount() { check("|a\nb", "99999999999j", "a\n|b"); }
+    public static void testCountClampsAtBufferEdge() { check("|a\nb\nc", "5j", "a\nb\n|c"); check("a\nb\n|c", "5k", "|a\nb\nc"); check("|ab\ncd", "5$", "ab\nc|d"); check("|a\n b\n c", "5+", "a\n b\n |c"); checkBeep("a\n|b", "j"); checkBeep("|a\nb", "k"); }
+    public static void testTrailingNewlineIsNotALine() { check("|a\nb\n", "G", "a\n|b\n"); check("|a\nb\n", "5j", "a\n|b\n"); checkBeep("a\n|b\n", "j"); check("|a\nb\n", "9gg", "a\n|b\n"); }
     public static void testUnknownPrefixRejected() { checkRejected("|a", "p"); checkRejected("|a", "3p"); checkRejected("|a", "zf"); checkRejected("|a", "<C-w>"); }
 }

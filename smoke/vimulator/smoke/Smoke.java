@@ -114,6 +114,20 @@ public class Smoke {
         {"|a\nb\nc", "<ex>noh", "|a\nb\nc"},
         {"|aaa", "<ex>s/a/b/g", "|bbb"},
         {"|abc", "<ex>s/zzz/y/", "|abc"},
+        // final review fixes
+        {"|abcd\nefgh", "lll<C-v>jhhhd", "\n"},
+        {"|ab cd", "ciwxy<Esc>u", "ab cd"},
+        {"|a", "ofoo<Esc>u", "a"},
+        {"|a", "3ix<Esc>u", "a"},
+        {"|abc", "i<Esc>", "|abc"},
+        {"a\n|b", "O<Esc>", "a\n|\nb"},
+        {"|abc", "i<C-o>qx<Esc>", "|xabc"},
+        {"|abc", "<ex>s/a/b/gc", "|abc"},
+        {"|ab\ncd", "v$d", "|cd"},
+        {"a\n|b\n", "dG", "|a\n"},
+        {"|a\nb\nc", "5j", "a\nb\n|c"},
+        {"|ab\ncd", "<ro>dd", "|ab\ncd"},
+        {"|ab\ncd", "<ro>ix<Esc>", "|ab\ncd"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},
@@ -137,7 +151,8 @@ public class Smoke {
                 } catch (Throwable ex) {
                     result = "threw " + ex;
                 }
-                boolean ok = result.equals(c[2]);
+                // an expectation without '|' compares the text only (caret placed by jEdit, e.g. undo)
+                boolean ok = c[2].indexOf('|') >= 0 ? result.equals(c[2]) : result.replace("|", "").equals(c[2]);
                 if (!ok) failed++;
                 report.append(ok ? "PASS " : "FAIL ").append(show(c[0])).append(" ").append(show(c[1]))
                       .append(ok ? "" : " expected <" + show(c[2]) + "> got <" + show(result) + ">").append('\n');
@@ -163,13 +178,20 @@ public class Smoke {
         buffer.remove(0, buffer.getLength());
         buffer.insert(0, text);
         ta.setCaretPosition(caret);
+        boolean readOnly = keys.startsWith("<ro>");
+        if (readOnly) keys = keys.substring(4);
         String ex = null;
         int exAt = keys.indexOf("<ex>");
         if (exAt >= 0) {
             ex = keys.substring(exAt + 4);
             keys = keys.substring(0, exAt);
         }
-        for (String tok : tokenize(keys)) send(view, ta, tok);
+        buffer.setReadOnly(readOnly);
+        try {
+            for (String tok : tokenize(keys)) send(view, ta, tok);
+        } finally {
+            buffer.setReadOnly(false);
+        }
         if (ex != null) {
             try {
                 vimulator.ex.ExInterpreter.eval(view, ex);

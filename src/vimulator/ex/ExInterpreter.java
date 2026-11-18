@@ -39,7 +39,14 @@ public class ExInterpreter {
             ta.goToStartOfWhiteSpace(false);
             return;
         }
-        SubstituteCommand sub = SubstituteCommand.parse(command);
+        SubstituteCommand sub;
+        try {
+            sub = SubstituteCommand.parse(command);
+        } catch (IllegalArgumentException e) {
+            VimulatorPlugin.getCommandLine(view).setStatus(e.getMessage());
+            VimulatorUtilities.beep(view);
+            return;
+        }
         if (sub != null) {
             substitute(view, range, sub);
             return;
@@ -111,6 +118,11 @@ public class ExInterpreter {
             regex = VimRegex.toJava(sub.pattern());
         }
         Buffer buffer = view.getBuffer();
+        if (!buffer.isEditable() || buffer.isReadOnly()) {
+            commandLine.setStatus("Buffer is read-only");
+            VimulatorUtilities.beep(view);
+            return;
+        }
         List<String> lines = new ArrayList<>();
         for (int l = range.first(); l <= range.last(); l++) lines.add(buffer.getLineText(l));
         Substitute.Result res;

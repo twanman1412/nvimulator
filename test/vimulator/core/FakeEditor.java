@@ -18,6 +18,7 @@ public class FakeEditor implements Editor {
     Operator lastBlockOperator;
     String lastSearch;
     int editDepth;
+    boolean editable = true;
 
     public FakeEditor(String text, int caret) {
         this.text = new StringBuilder(text);
@@ -125,6 +126,7 @@ public class FakeEditor implements Editor {
     @Override public void endEdit() { editDepth--; }
     @Override public void beep() { beeps++; }
     @Override public String extraWordChars() { return ""; }
+    @Override public boolean editable() { return editable; }
     @Override public int firstVisibleLine() { return firstVisible; }
     @Override public int visibleLineCount() { return height; }
     @Override public void setFirstVisibleLine(int line) { firstVisible = line; }

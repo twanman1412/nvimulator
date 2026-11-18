@@ -95,7 +95,11 @@ public class JEditEditor implements Editor {
             int end = Math.min(lineEnd(lineOfOffset(b)) + 1, len);
             s = new Selection.Range(start, end);
         } else if (visualMode == Mode.VISUAL_BLOCK) {
-            s = new Selection.Rect(a, Math.min(b + 1, len));
+            // corners may be in any order: build the rectangle from its columns
+            int lineA = lineOfOffset(anchor), lineC = lineOfOffset(caret);
+            int colA = anchor - lineStart(lineA), colC = caret - lineStart(lineC);
+            s = new Selection.Rect(buf(), Math.min(lineA, lineC), Math.min(colA, colC),
+                    Math.max(lineA, lineC), Math.max(colA, colC) + 1);
         } else {
             s = new Selection.Range(a, Math.min(b + 1, len));
         }
@@ -153,9 +157,23 @@ public class JEditEditor implements Editor {
         VimulatorPlugin.getCommandLine(view).search(javaRegex, backward);
     }
 
-    @Override public void beginEdit() { buf().beginCompoundEdit(); }
-    @Override public void endEdit() { buf().endCompoundEdit(); }
+    /** Buffers with an open compound edit, so endEdit closes the right one after a buffer switch. */
+    private final java.util.ArrayDeque<JEditBuffer> openEdits = new java.util.ArrayDeque<>();
+
+    @Override public void beginEdit() {
+        JEditBuffer b = buf();
+        b.beginCompoundEdit();
+        openEdits.push(b);
+    }
+
+    @Override public void endEdit() {
+        JEditBuffer b = openEdits.isEmpty() ? buf() : openEdits.pop();
+        b.endCompoundEdit();
+    }
     @Override public void beep() { VimulatorUtilities.beep(view); }
+
+    /** jEdit's isEditable covers locked buffers and buffers being saved, not the read-only flag. */
+    @Override public boolean editable() { return buf().isEditable() && !buf().isReadOnly(); }
 
     @Override public String extraWordChars() {
         String s = buf().getStringProperty("noWordSep");

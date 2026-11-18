@@ -69,11 +69,10 @@ public class VimulatorUtilities {
         if ((handler.getMode() & VimulatorConstants.INSERT) != 0
                 && (mode & VimulatorConstants.INSERT) == 0 && handler.getEngine() != null)
             handler.getEngine().onInsertExit();
-        if (moveLeft && (((VimulatorInputHandler) view.getInputHandler()).getMode()
-                & VimulatorConstants.INSERT) != 0)
-            textArea.moveCaretPosition(
-                textArea.getCaretPosition()-1
-            );
+        int caret = textArea.getCaretPosition();
+        if (moveLeft && (handler.getMode() & VimulatorConstants.INSERT) != 0
+                && caret > textArea.getLineStartOffset(textArea.getCaretLine()))
+            textArea.moveCaretPosition(caret - 1);
 
         Log.log(Log.DEBUG, null, "Setting mode to " + mode);
         ((VimulatorInputHandler) view.getInputHandler()).setMode(mode);
@@ -103,6 +102,14 @@ public class VimulatorUtilities {
                 + VimulatorConstants.stringOfMode.get(mode).toLowerCase() + "-mode"));
     }
 
+    /** {@code :wq} / {@code :wq!} / {@code :x}: save, wait for the save to finish, then close. */
+    public static void saveCloseBuffer(View view) {
+        org.gjt.sp.jedit.Buffer buffer = view.getBuffer();
+        buffer.save(view, null, true);
+        org.gjt.sp.jedit.io.VFSManager.waitForRequests();
+        jEdit.closeBuffer(view, buffer);
+    }
+
     /** {@code :wqa} / {@code :wqa!}: save every buffer, then close them all. */
     public static void saveCloseAll(View view) {
         jEdit.saveAllBuffers(view, false);
@@ -124,6 +131,10 @@ public class VimulatorUtilities {
 
     /** Insert-mode C-w: delete the word before the caret. */
     public static void insertDeleteWord(View view) {
+        if (!new JEditEditor(view).editable()) {
+            beep(view);
+            return;
+        }
         JEditEditor ed = new JEditEditor(view);
         int caret = ed.caret();
         int start = vimulator.core.InsertEdits.deleteWordStart(ed,
@@ -133,6 +144,10 @@ public class VimulatorUtilities {
 
     /** Insert-mode C-u: delete back to the indent, the line start, or the previous line. */
     public static void insertDeleteLine(View view) {
+        if (!new JEditEditor(view).editable()) {
+            beep(view);
+            return;
+        }
         JEditEditor ed = new JEditEditor(view);
         int caret = ed.caret();
         int start = vimulator.core.InsertEdits.deleteLineStart(ed, caret);

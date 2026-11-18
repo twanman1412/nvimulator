@@ -33,6 +33,16 @@ public final class Motions {
         return lastChar(t, line);
     }
 
+    /**
+     * The last real line. A buffer ending in '\n' has an empty phantom line after it (jEdit
+     * shows it); Vim has no such line, so motions and line counts stop before it.
+     */
+    public static int lastLine(TextModel t) {
+        int n = t.lineCount() - 1;
+        if (n > 0 && t.lineStart(n) == t.length()) return n - 1;
+        return n;
+    }
+
     /** Clamps an offset to a valid normal-mode caret position (on a character, not on '\n'). */
     public static int clampNormal(TextModel t, int offset) {
         offset = Math.max(0, Math.min(offset, t.length()));
@@ -72,46 +82,56 @@ public final class Motions {
         return firstNonBlank(t, lineOf(t, caret));
     }
 
-    /** {@code $}: last char of the line count-1 lines down. */
+    /** Line {@code count} lines below the caret line, clamped; -1 when already on the last line. */
+    private static int lineBelow(TextModel t, int caret, int count) {
+        int cur = lineOf(t, caret), last = lastLine(t);
+        if (cur >= last) return -1;
+        return (int) Math.min((long) cur + count, last);
+    }
+
+    /** Line {@code count} lines above the caret line, clamped; -1 when already on the first line. */
+    private static int lineAbove(TextModel t, int caret, int count) {
+        int cur = lineOf(t, caret);
+        if (cur <= 0) return -1;
+        return (int) Math.max((long) cur - count, 0);
+    }
+
+    /** {@code $}: last char of the line count-1 lines down (clamped to the last line). */
     public static int lineEnd(TextModel t, int caret, int count) {
-        long line = (long) lineOf(t, caret) + count - 1;
-        if (line >= t.lineCount()) return -1;
-        return lastChar(t, (int) line);
+        int cur = lineOf(t, caret);
+        int line = (int) Math.min((long) cur + count - 1, Math.max(cur, lastLine(t)));
+        return lastChar(t, line);
     }
 
     // ---- vertical
 
     public static int down(TextModel t, int caret, int count, int desiredCol) {
-        long line = (long) lineOf(t, caret) + count;
-        if (line >= t.lineCount()) return -1;
-        return atColumn(t, (int) line, desiredCol);
+        int line = lineBelow(t, caret, count);
+        return line < 0 ? -1 : atColumn(t, line, desiredCol);
     }
 
     public static int up(TextModel t, int caret, int count, int desiredCol) {
-        long line = (long) lineOf(t, caret) - count;
-        if (line < 0) return -1;
-        return atColumn(t, (int) line, desiredCol);
+        int line = lineAbove(t, caret, count);
+        return line < 0 ? -1 : atColumn(t, line, desiredCol);
     }
 
     /** {@code +} / {@code <CR>}: first non-blank count lines down. */
     public static int nextLineStart(TextModel t, int caret, int count) {
-        long line = (long) lineOf(t, caret) + count;
-        if (line >= t.lineCount()) return -1;
-        return firstNonBlank(t, (int) line);
+        int line = lineBelow(t, caret, count);
+        return line < 0 ? -1 : firstNonBlank(t, line);
     }
 
     /** {@code -}: first non-blank count lines up. */
     public static int prevLineStart(TextModel t, int caret, int count) {
-        long line = (long) lineOf(t, caret) - count;
-        if (line < 0) return -1;
-        return firstNonBlank(t, (int) line);
+        int line = lineAbove(t, caret, count);
+        return line < 0 ? -1 : firstNonBlank(t, line);
     }
 
-    /** {@code _}: first non-blank count-1 lines down. */
+    /** {@code _}: first non-blank count-1 lines down (clamped). */
     public static int underscore(TextModel t, int caret, int count) {
-        long line = (long) lineOf(t, caret) + count - 1;
-        if (line >= t.lineCount()) return -1;
-        return firstNonBlank(t, (int) line);
+        int cur = lineOf(t, caret);
+        int line = (int) Math.min((long) cur + count - 1, Math.max(cur, lastLine(t)));
+        return firstNonBlank(t, line);
     }
 
     // ---- words
@@ -282,7 +302,7 @@ public final class Motions {
     /** {@code N%}: first non-blank of the line N percent into the buffer. */
     public static int percentLine(TextModel t, int percent) {
         if (percent > 100) return -1;
-        int line1 = (int) (((long) percent * t.lineCount() + 99) / 100);
+        int line1 = (int) (((long) percent * (lastLine(t) + 1) + 99) / 100);
         return goToLine(t, Math.max(1, line1));
     }
 
@@ -319,7 +339,7 @@ public final class Motions {
 
     /** {@code gg}/{@code G}: line {@code line1} (1-based), clamped, first non-blank. */
     public static int goToLine(TextModel t, int line1) {
-        int line = Math.max(0, Math.min(line1 - 1, t.lineCount() - 1));
+        int line = Math.max(0, Math.min(line1 - 1, lastLine(t)));
         return firstNonBlank(t, line);
     }
 }

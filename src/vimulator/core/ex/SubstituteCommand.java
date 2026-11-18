@@ -3,7 +3,11 @@ package vimulator.core.ex;
 /** A parsed {@code :s/pattern/replacement/flags} command (pattern and replacement still in Vim syntax). */
 public record SubstituteCommand(String pattern, String replacement, boolean global, boolean ignoreCase) {
 
-    /** @return the command, or null when {@code rest} is not a substitute command */
+    /**
+     * @return the command, or null when {@code rest} is not a substitute command
+     * @throws IllegalArgumentException for flags other than g, i and I (e.g. c, which would
+     *         otherwise silently replace without confirmation)
+     */
     public static SubstituteCommand parse(String rest) {
         int i;
         if (rest.startsWith("substitute")) i = "substitute".length();
@@ -23,6 +27,8 @@ public record SubstituteCommand(String pattern, String replacement, boolean glob
             if (f == 'g') global = true;
             else if (f == 'i') ignoreCase = true;
             else if (f == 'I') ignoreCase = false;
+            else if (!Character.isWhitespace(f))
+                throw new IllegalArgumentException("unsupported :s flag: " + f);
         }
         return new SubstituteCommand(pattern.toString(), replacement.toString(), global, ignoreCase);
     }

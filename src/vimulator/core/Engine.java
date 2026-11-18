@@ -132,6 +132,11 @@ public final class Engine {
     /** Text typed during the insert that belongs to {@link #lastChange}. */
     private String lastInsertedText = "";
     private boolean replaying;
+    /** An undo unit opened by a change that entered insert mode, closed in {@link #onInsertExit}. */
+    private boolean insertEditOpen;
+    /** Normal-mode commands that change text (besides operators). */
+    private static final Set<String> CHANGE_COMMANDS =
+            Set.of("~", "J", "gJ", "<C-a>", "<C-x>", "r", "i", "a", "I", "A", "o", "O", ".");
     /** Insert commands whose count repeats the typed text. */
     private static final Set<String> INSERT_COMMANDS = Set.of("i", "a", "I", "A", "o", "O");
 
@@ -183,7 +188,16 @@ public final class Engine {
             default:
                 pending.clear();
                 boolean wasVisual = ed.mode().isVisual();
-                execute(p.cmd);
+                boolean keepOpen = false;
+                ed.beginEdit();
+                try {
+                    execute(p.cmd);
+                    // a change that enters insert mode stays one undo unit with the typed text
+                    keepOpen = isInsert(ed.mode());
+                } finally {
+                    if (keepOpen) insertEditOpen = true;
+                    else ed.endEdit();
+                }
                 if (!replaying && !wasVisual && isInsert(ed.mode())) startRecording(p.cmd);
                 finish();
                 return Result.DONE;
@@ -201,6 +215,17 @@ public final class Engine {
 
     /** Called by the host when insert/replace mode ends, before the caret moves left. */
     public void onInsertExit() {
+        try {
+            recordInsert();
+        } finally {
+            if (insertEditOpen) {
+                insertEditOpen = false;
+                ed.endEdit();
+            }
+        }
+    }
+
+    private void recordInsert() {
         if (!recording) return;
         recording = false;
         int caret = ed.caret();
@@ -405,8 +430,24 @@ public final class Engine {
 
     // ------------------------------------------------------------------ execution
 
+    private boolean changesText(Command c, boolean visual) {
+        if (c.opKey != null) return !c.opKey.equals("y");
+        if (c.cmdKey == null) return false;
+        if (visual) return c.cmdKey.equals("J") || c.cmdKey.equals("gJ");
+        return CHANGE_COMMANDS.contains(c.cmdKey);
+    }
+
     private void execute(Command c) {
-        if (ed.mode().isVisual()) {
+        boolean visual = ed.mode().isVisual();
+        if (!ed.editable() && changesText(c, visual)) {
+            ed.beep();
+            if (visual) {
+                ed.setMode(Mode.NORMAL);
+                anchor = -1;
+            }
+            return;
+        }
+        if (visual) {
             executeVisual(c);
             return;
         }
@@ -464,7 +505,7 @@ public final class Engine {
         int caret = ed.caret();
         if (c.doubled) {
             int first = ed.lineOfOffset(caret);
-            long last = Math.min((long) first + c.count() - 1, ed.lineCount() - 1);
+            long last = Math.max(first, Math.min((long) first + c.count() - 1, Motions.lastLine(ed)));
             return new Range(ed.lineStart(first), ed.lineStart((int) last), MotionType.LINEWISE);
         }
         Ctx x = ctx(c, true);
@@ -682,11 +723,12 @@ public final class Engine {
 
     private void join(Command c, boolean spaces) {
         int line = ed.lineOfOffset(ed.caret());
-        if (line + 1 >= ed.lineCount()) {
+        int lastLine = Motions.lastLine(ed);
+        if (line >= lastLine) {
             ed.beep();
             return;
         }
-        int joins = Math.min(Math.max(c.count(), 2) - 1, ed.lineCount() - 1 - line);
+        int joins = Math.min(Math.max(c.count(), 2) - 1, lastLine - line);
         int[] caret = {ed.caret()};
         change(c, () -> {
             for (int i = 0; i < joins; i++) caret[0] = Transforms.join(ed, line, spaces);
@@ -730,7 +772,15 @@ public final class Engine {
                 ed.beep();
                 return;
             }
-            moveTo(target, s);
+            if (s.toEol && ed.mode() != Mode.VISUAL_BLOCK) {
+                // $ in visual mode selects up to and including the line break
+                int line = ed.lineOfOffset(target);
+                int pos = ed.lineEnd(line) < ed.length() ? ed.lineEnd(line) : Motions.lastChar(ed, line);
+                ed.setCaret(pos);
+                desiredCol = Integer.MAX_VALUE;
+            } else {
+                moveTo(target, s);
+            }
             updateSelection();
         }
     }
@@ -790,7 +840,14 @@ public final class Engine {
             return;
         }
         int a = Math.min(anchor, caret), b = Math.min(Math.max(anchor, caret), Math.max(0, ed.length()));
-        Range r = new Range(a, b, mode == Mode.VISUAL_LINE ? MotionType.LINEWISE : MotionType.INCLUSIVE);
+        Range r;
+        if (mode == Mode.VISUAL_LINE) {
+            r = new Range(a, b, MotionType.LINEWISE);
+        } else {
+            // a charwise selection that covers a line end includes the line break
+            boolean onLineEnd = b < ed.length() && ed.charAt(b) == '\n';
+            r = new Range(a, onLineEnd ? b + 1 : Operators.inclusiveEnd(ed, b), MotionType.EXCLUSIVE);
+        }
         ed.setMode(Mode.NORMAL);
         anchor = -1;
         boolean ok;
@@ -809,15 +866,15 @@ public final class Engine {
         lastVisual = new Visual(anchor, caret, ed.mode());
         ed.setMode(Mode.NORMAL);
         anchor = -1;
-        if (first + 1 >= ed.lineCount()) {
+        if (first >= Motions.lastLine(ed)) {
             ed.beep();
             return;
         }
-        int joins = Math.max(last - first, 1);
+        int joins = Math.min(Math.max(last - first, 1), Motions.lastLine(ed) - first);
         int[] pos = {caret};
         ed.beginEdit();
         try {
-            for (int i = 0; i < joins && first + 1 < ed.lineCount(); i++) pos[0] = Transforms.join(ed, first, spaces);
+            for (int i = 0; i < joins; i++) pos[0] = Transforms.join(ed, first, spaces);
         } finally {
             ed.endEdit();
         }
@@ -900,13 +957,13 @@ public final class Engine {
             if (c.hasCount()) scrollAmount = c.count();
             return scrollAmount > 0 ? scrollAmount : Math.max(1, ed.visibleLineCount() / 2);
         };
-        scrollCommand("<C-d>", c -> Scrolling.halfPage(ed.lineCount(), ed.visibleLineCount(),
+        scrollCommand("<C-d>", c -> Scrolling.halfPage(Motions.lastLine(ed) + 1, ed.visibleLineCount(),
                 ed.firstVisibleLine(), caretLine(), amount.apply(c), true));
-        scrollCommand("<C-u>", c -> Scrolling.halfPage(ed.lineCount(), ed.visibleLineCount(),
+        scrollCommand("<C-u>", c -> Scrolling.halfPage(Motions.lastLine(ed) + 1, ed.visibleLineCount(),
                 ed.firstVisibleLine(), caretLine(), amount.apply(c), false));
-        scrollCommand("<C-e>", c -> Scrolling.lines(ed.lineCount(), ed.visibleLineCount(),
+        scrollCommand("<C-e>", c -> Scrolling.lines(Motions.lastLine(ed) + 1, ed.visibleLineCount(),
                 ed.firstVisibleLine(), caretLine(), c.count(), true));
-        scrollCommand("<C-y>", c -> Scrolling.lines(ed.lineCount(), ed.visibleLineCount(),
+        scrollCommand("<C-y>", c -> Scrolling.lines(Motions.lastLine(ed) + 1, ed.visibleLineCount(),
                 ed.firstVisibleLine(), caretLine(), c.count(), false));
         zCommand("zz", 'z', false);
         zCommand("z.", 'z', true);

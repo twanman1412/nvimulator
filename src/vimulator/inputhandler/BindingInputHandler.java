@@ -185,6 +185,7 @@ public class BindingInputHandler extends InputHandler {
             }
 
             Toolkit.getDefaultToolkit().beep();
+            if (!isModifier(keyCode)) afterCommand();
 
             if (currentBindings != bindings) {
                 // F10 should be passed on, but C+e F10
@@ -255,6 +256,7 @@ public class BindingInputHandler extends InputHandler {
 
         Toolkit.getDefaultToolkit().beep();
         resetState();
+        afterCommand();
     }
 
     @Override
@@ -292,12 +294,19 @@ public class BindingInputHandler extends InputHandler {
         }
     }
 
-    /** True while the legacy table is in the middle of a sequence (prefix key, count or char argument). */
+    private static boolean isModifier(int keyCode) {
+        return keyCode == KeyEvent.VK_SHIFT || keyCode == KeyEvent.VK_CONTROL || keyCode == KeyEvent.VK_ALT
+                || keyCode == KeyEvent.VK_META || keyCode == KeyEvent.VK_ALT_GRAPH
+                || keyCode == KeyEvent.VK_CAPS_LOCK;
+    }
+
+    /** Ends an insert-mode C-o window after a complete (or failed) command. */
     private void afterCommand() {
         if (view != null && view.getInputHandler() instanceof VimulatorInputHandler)
             ((VimulatorInputHandler) view.getInputHandler()).afterCommand();
     }
 
+    /** True while the legacy table is in the middle of a sequence (prefix key, count or char argument). */
     private boolean legacyPending() {
         return currentBindings != bindings || readNextChar != null || requestedRepeat;
     }

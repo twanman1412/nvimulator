@@ -88,7 +88,7 @@ public final class Operators {
                 } else {
                     ed.replace(ed.lineStart(first), Math.min(ed.lineEnd(last) + 1, ed.length()), "");
                 }
-                int line = Math.min(first, ed.lineCount() - 1);
+                int line = Math.min(first, Motions.lastLine(ed));
                 ed.setCaret(Motions.firstNonBlank(ed, line));
                 return true;
             }

@@ -9,6 +9,7 @@ public class VisualTest {
     public static void testSwapAndReselect() { check("a|bcd", "vllohd", "|"); check("|abc", "vl<Esc>gvd", "|c"); checkBeep("|abc", "gv"); }
     public static void testModeSwitch() { eq(Mode.VISUAL_LINE, of("|a").keys("vV").mode()); eq(Mode.NORMAL, of("|a").keys("vv").mode()); eq(Mode.VISUAL, of("|a b").keys("Viw").mode()); eq(Mode.VISUAL_LINE, of("a\n|b\n\nc").keys("vip").mode()); }
     public static void testBlockDelegates() { Fixture f = of("|ab\ncd").keys("<C-v>jld"); eq(Operator.DELETE, f.lastBlockOperator()); eq(Mode.NORMAL, f.mode()); checkRejected("|ab\ncd", "<C-v>jc"); }
+    public static void testCharwiseIncludesLineEnd() { check("a\n|\nb", "vd", "a\n|b"); check("|ab\ncd", "v$d", "|cd"); check("|ab\n\ncd", "vjd", "|cd"); check("|ab", "v$d", "|"); eq("ab\n", of("|ab\ncd").keys("v$").selectedText()); }
     public static void testLegacyKeysRejected() { checkRejected("|ab", "vlp"); checkRejected("|ab", "vlI"); checkRejected("|ab", "vlr"); }
     public static void testLastVisualLines() { Fixture f = of("a\n|b\nc\nd").keys("Vj<Esc>"); int[] l = f.engine().lastVisualLines(); eq(1, l[0]); eq(2, l[1]); }
 }
