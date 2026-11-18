@@ -49,6 +49,24 @@
 		</CODE>
 	</ACTION>
 
+	<ACTION NAME="vi-insert-delete-word">
+		<CODE>
+			vimulator.VimulatorUtilities.insertDeleteWord(view);
+		</CODE>
+	</ACTION>
+
+	<ACTION NAME="vi-insert-delete-line">
+		<CODE>
+			vimulator.VimulatorUtilities.insertDeleteLine(view);
+		</CODE>
+	</ACTION>
+
+	<ACTION NAME="vi-insert-one-command">
+		<CODE>
+			vimulator.VimulatorUtilities.insertOneCommand(view);
+		</CODE>
+	</ACTION>
+
 	<ACTION NAME="vi-insert-mode">
 		<CODE>
 			vimulator.VimulatorUtilities.setInsertMode(view);

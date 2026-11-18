@@ -101,6 +101,11 @@ public class Smoke {
         {"foo bar foo baz |foo", "#n", "|foo bar foo baz foo"},
         {"foo bar foo baz |foo", "#N", "foo bar foo baz |foo"},
         {"|foo foobar foo", "g*", "foo |foobar foo"},
+        // Task 13: insert-mode C-w / C-u / C-o
+        {"|", "ifoo bar<C-w><Esc>", "foo| "},
+        {"|", "i  foo<C-u>x<Esc>", "  |x"},
+        {"|foo", "A<C-o>0x<Esc>", "|xfoo"},
+        {"|abc", "i<C-o>$x<Esc>", "abc|x"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},

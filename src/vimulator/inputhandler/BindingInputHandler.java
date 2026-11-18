@@ -180,6 +180,7 @@ public class BindingInputHandler extends InputHandler {
                 invokeAction((EditAction) o);
                 evt.consume();
                 resetState();
+                afterCommand();
                 return;
             }
 
@@ -245,8 +246,10 @@ public class BindingInputHandler extends InputHandler {
             //        "Typed, Result of keystroke: New Action " + ((EditAction) o).getLabel());
             invokeAction((EditAction) o);
             evt.consume();
-            if (readNextChar == null)
+            if (readNextChar == null) {
                 resetState();
+                afterCommand();
+            }
             return;
         }
 
@@ -279,6 +282,7 @@ public class BindingInputHandler extends InputHandler {
             case DONE:
                 engineKeys.clear();
                 evt.consume();
+                afterCommand();
                 break;
             default: // REJECTED: the sequence belongs to the legacy bindings
                 List<KeyEvent> replay = new ArrayList<>(engineKeys);
@@ -289,6 +293,11 @@ public class BindingInputHandler extends InputHandler {
     }
 
     /** True while the legacy table is in the middle of a sequence (prefix key, count or char argument). */
+    private void afterCommand() {
+        if (view != null && view.getInputHandler() instanceof VimulatorInputHandler)
+            ((VimulatorInputHandler) view.getInputHandler()).afterCommand();
+    }
+
     private boolean legacyPending() {
         return currentBindings != bindings || readNextChar != null || requestedRepeat;
     }

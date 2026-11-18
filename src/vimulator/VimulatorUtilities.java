@@ -53,6 +53,13 @@ public class VimulatorUtilities {
     }
 
     public static void setMode(View view, int mode) {
+        setMode(view, mode, true);
+    }
+
+    /**
+     * @param moveLeft whether leaving insert mode moves the caret one left (false for insert C-o)
+     */
+    public static void setMode(View view, int mode, boolean moveLeft) {
         if (!checkEmulation(view))
             return;
 
@@ -63,7 +70,7 @@ public class VimulatorUtilities {
         if ((handler.getMode() & VimulatorConstants.INSERT) != 0
                 && (mode & VimulatorConstants.INSERT) == 0 && handler.getEngine() != null)
             handler.getEngine().onInsertExit();
-        if ((((VimulatorInputHandler) view.getInputHandler()).getMode()
+        if (moveLeft && (((VimulatorInputHandler) view.getInputHandler()).getMode()
                 & VimulatorConstants.INSERT) != 0)
             textArea.moveCaretPosition(
                 textArea.getCaretPosition()-1
@@ -96,6 +103,30 @@ public class VimulatorUtilities {
 
         setStatus(view, jEdit.getProperty("vimulator.msg."
                 + VimulatorConstants.stringOfMode.get(mode).toLowerCase() + "-mode"));
+    }
+
+    /** Insert-mode C-w: delete the word before the caret. */
+    public static void insertDeleteWord(View view) {
+        JEditEditor ed = new JEditEditor(view);
+        int caret = ed.caret();
+        int start = vimulator.core.InsertEdits.deleteWordStart(ed,
+                new vimulator.core.CharClass(ed.extraWordChars()), caret);
+        if (start < caret) view.getBuffer().remove(start, caret - start);
+    }
+
+    /** Insert-mode C-u: delete back to the indent, the line start, or the previous line. */
+    public static void insertDeleteLine(View view) {
+        JEditEditor ed = new JEditEditor(view);
+        int caret = ed.caret();
+        int start = vimulator.core.InsertEdits.deleteLineStart(ed, caret);
+        if (start < caret) view.getBuffer().remove(start, caret - start);
+    }
+
+    /** Insert-mode C-o: run one normal-mode command, then return to insert mode. */
+    public static void insertOneCommand(View view) {
+        if (!checkEmulation(view)) return;
+        ((VimulatorInputHandler) view.getInputHandler()).setReturnToInsert(true);
+        setMode(view, VimulatorConstants.COMMAND, false);
     }
 
     public static void setInsertMode(View view) {

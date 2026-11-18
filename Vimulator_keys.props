@@ -19,6 +19,9 @@ vimulator.keys.insert.prev-page=S+UP
 vimulator.keys.insert.prev-page.2=PAGE_UP
 vimulator.keys.insert.next-page=S+DOWN
 vimulator.keys.insert.next-page.2=PAGE_DOWN
+vimulator.keys.insert.vi-insert-delete-word=C+W
+vimulator.keys.insert.vi-insert-delete-line=C+U
+vimulator.keys.insert.vi-insert-one-command=C+O
 
 # Command mode
 vimulator.keys.command.vi-prev-col=H

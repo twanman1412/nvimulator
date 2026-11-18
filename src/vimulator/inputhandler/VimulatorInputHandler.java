@@ -83,6 +83,26 @@ public class VimulatorInputHandler extends InputHandler {
         return mode;
     }
 
+    /** Set by insert-mode C-o: return to insert mode after the next complete command. */
+    private boolean returnToInsert;
+
+    public void setReturnToInsert(boolean b) {
+        returnToInsert = b;
+    }
+
+    /** Called after every complete normal-mode command (engine or legacy). */
+    public void afterCommand() {
+        if (!returnToInsert) return;
+        returnToInsert = false;
+        if (mode != VimulatorConstants.COMMAND) return; // the command chose its own mode
+        boolean toLineEnd = engine != null && engine.wantsLineEnd();
+        VimulatorUtilities.setInsertMode(view);
+        if (toLineEnd) {
+            org.gjt.sp.jedit.textarea.JEditTextArea ta = view.getTextArea();
+            ta.moveCaretPosition(ta.getLineEndOffset(ta.getCaretLine()) - 1);
+        }
+    }
+
     /** The per-view command engine, or null for the root handler. */
     public vimulator.core.Engine getEngine() {
         return engine;

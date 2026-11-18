@@ -194,6 +194,11 @@ public final class Engine {
         return pending.isEmpty();
     }
 
+    /** True after a {@code $}-style motion: the caret wants to be at the end of the line. */
+    public boolean wantsLineEnd() {
+        return desiredCol == Integer.MAX_VALUE;
+    }
+
     /** Called by the host when insert/replace mode ends, before the caret moves left. */
     public void onInsertExit() {
         if (!recording) return;
