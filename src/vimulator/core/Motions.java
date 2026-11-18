@@ -114,6 +114,135 @@ public final class Motions {
         return firstNonBlank(t, (int) line);
     }
 
+    // ---- words
+
+    private static int cls(TextModel t, CharClass cc, int i, boolean big) {
+        char c = t.charAt(i);
+        return big ? cc.ofBig(c) : cc.of(c);
+    }
+
+    /** True when offset i is the position of an empty line. */
+    static boolean emptyLineAt(TextModel t, int i) {
+        int len = t.length();
+        if (i > len) return false;
+        boolean atLineEnd = i == len || t.charAt(i) == '\n';
+        return atLineEnd && (i == 0 || t.charAt(i - 1) == '\n');
+    }
+
+    /** {@code w}/{@code W}: start of the count-th next word; may return length(). */
+    public static int wordForward(TextModel t, CharClass cc, int caret, int count, boolean big) {
+        int len = t.length();
+        int i = caret;
+        for (int n = 0; n < count; n++) {
+            if (i >= len - 1) {
+                if (n == 0) return -1;
+                return len;
+            }
+            int start = i;
+            int c0 = cls(t, cc, i, big);
+            if (c0 != CharClass.BLANK) {
+                while (i < len && cls(t, cc, i, big) == c0) i++;
+            } else if (emptyLineAt(t, i)) {
+                i++;
+            }
+            while (i < len && cls(t, cc, i, big) == CharClass.BLANK) {
+                if (i > start && emptyLineAt(t, i)) break;
+                i++;
+            }
+        }
+        return i;
+    }
+
+    /** {@code b}/{@code B}: start of the count-th previous word. */
+    public static int wordBackward(TextModel t, CharClass cc, int caret, int count, boolean big) {
+        int i = caret;
+        for (int n = 0; n < count; n++) {
+            if (i == 0) {
+                if (n == 0) return -1;
+                break;
+            }
+            i--;
+            while (i > 0 && cls(t, cc, i, big) == CharClass.BLANK && !emptyLineAt(t, i)) i--;
+            if (emptyLineAt(t, i)) continue;
+            int c0 = cls(t, cc, i, big);
+            while (i > 0 && cls(t, cc, i - 1, big) == c0) i--;
+        }
+        return i;
+    }
+
+    /** {@code e}/{@code E}: end of the count-th next word. */
+    public static int wordEnd(TextModel t, CharClass cc, int caret, int count, boolean big) {
+        int len = t.length();
+        int i = caret;
+        for (int n = 0; n < count; n++) {
+            if (i >= len - 1) {
+                if (n == 0) return -1;
+                break;
+            }
+            int j = i + 1;
+            while (j < len && cls(t, cc, j, big) == CharClass.BLANK) j++;
+            if (j >= len) {
+                if (n == 0) return -1;
+                break;
+            }
+            int c0 = cls(t, cc, j, big);
+            while (j + 1 < len && cls(t, cc, j + 1, big) == c0) j++;
+            i = j;
+        }
+        return i;
+    }
+
+    /** {@code ge}/{@code gE}: end of the count-th previous word; empty lines are stops. */
+    public static int wordEndBackward(TextModel t, CharClass cc, int caret, int count, boolean big) {
+        int i = caret;
+        for (int n = 0; n < count; n++) {
+            if (i == 0) {
+                if (n == 0) return -1;
+                break;
+            }
+            if (!emptyLineAt(t, i) && i < t.length()) {
+                int c0 = cls(t, cc, i, big);
+                if (c0 != CharClass.BLANK)
+                    while (i > 0 && cls(t, cc, i - 1, big) == c0) i--;
+            }
+            if (i == 0) return 0;
+            i--;
+            while (i > 0 && cls(t, cc, i, big) == CharClass.BLANK && !emptyLineAt(t, i)) i--;
+        }
+        return i;
+    }
+
+    // ---- paragraphs
+
+    private static boolean lineEmpty(TextModel t, int line) {
+        return t.lineStart(line) == t.lineEnd(line);
+    }
+
+    /** {@code }}: next empty line; length() when there is none. */
+    public static int paragraphForward(TextModel t, int caret, int count) {
+        int last = t.lineCount() - 1;
+        int line = lineOf(t, caret);
+        for (int n = 0; n < count; n++) {
+            while (line < last && lineEmpty(t, line)) line++;
+            line++;
+            while (line <= last && !lineEmpty(t, line)) line++;
+            if (line > last) return t.length();
+        }
+        return t.lineStart(line);
+    }
+
+    /** {@code {}: previous empty line; 0 when there is none. */
+    public static int paragraphBackward(TextModel t, int caret, int count) {
+        int line = lineOf(t, caret);
+        for (int n = 0; n < count; n++) {
+            while (line > 0 && lineEmpty(t, line)) line--;
+            line--;
+            while (line >= 0 && !lineEmpty(t, line)) line--;
+            if (line < 0) return 0;
+        }
+        return t.lineStart(line);
+    }
+
     /** {@code gg}/{@code G}: line {@code line1} (1-based), clamped, first non-blank. */
     public static int goToLine(TextModel t, int line1) {
         int line = Math.max(0, Math.min(line1 - 1, t.lineCount() - 1));

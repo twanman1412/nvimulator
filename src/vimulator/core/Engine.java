@@ -250,5 +250,16 @@ public final class Engine {
         motion("_", MotionType.LINEWISE, c -> Motions.underscore(c.ed, c.caret, c.count));
         motion("gg", MotionType.LINEWISE, c -> Motions.goToLine(c.ed, c.hasCount ? c.count : 1));
         motion("G", MotionType.LINEWISE, c -> Motions.goToLine(c.ed, c.hasCount ? c.count : c.ed.lineCount()));
+
+        motion("w", MotionType.EXCLUSIVE, c -> Motions.wordForward(c.ed, c.cc, c.caret, c.count, false));
+        motion("W", MotionType.EXCLUSIVE, c -> Motions.wordForward(c.ed, c.cc, c.caret, c.count, true));
+        motion("b", MotionType.EXCLUSIVE, c -> Motions.wordBackward(c.ed, c.cc, c.caret, c.count, false));
+        motion("B", MotionType.EXCLUSIVE, c -> Motions.wordBackward(c.ed, c.cc, c.caret, c.count, true));
+        motion("e", MotionType.INCLUSIVE, c -> Motions.wordEnd(c.ed, c.cc, c.caret, c.count, false));
+        motion("E", MotionType.INCLUSIVE, c -> Motions.wordEnd(c.ed, c.cc, c.caret, c.count, true));
+        motion("ge", MotionType.INCLUSIVE, c -> Motions.wordEndBackward(c.ed, c.cc, c.caret, c.count, false));
+        motion("gE", MotionType.INCLUSIVE, c -> Motions.wordEndBackward(c.ed, c.cc, c.caret, c.count, true));
+        motion("}", MotionType.EXCLUSIVE, c -> Motions.paragraphForward(c.ed, c.caret, c.count));
+        motion("{", MotionType.EXCLUSIVE, c -> Motions.paragraphBackward(c.ed, c.caret, c.count));
     }
 }

@@ -30,6 +30,11 @@ public class Smoke {
         {"|a\nb\nc", "3G", "a\nb\n|c"},
         {"a\nb\n|c", "gg", "|a\nb\nc"},
         {"|abc", "ix<Esc>", "|xabc"},
+        // Task 4: word / paragraph motions
+        {"|foo.bar baz", "3w", "foo.bar |baz"},
+        {"foo ba|r", "b", "foo |bar"},
+        {"|foo bar", "ee", "foo ba|r"},
+        {"|a\nb\n\nc", "}", "a\nb\n|\nc"},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},

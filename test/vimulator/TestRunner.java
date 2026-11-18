@@ -12,6 +12,7 @@ public class TestRunner {
         vimulator.core.TextModelTest.class,
         vimulator.core.BasicMotionTest.class,
         vimulator.core.KeyTokensTest.class,
+        vimulator.core.WordMotionTest.class,
     };
 
     public static void main(String[] args) throws Exception {
