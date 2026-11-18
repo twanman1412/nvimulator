@@ -126,6 +126,8 @@ public final class Engine {
     /** Visual anchor; -1 when unknown (then the caret is used). */
     private int anchor = -1;
     private Visual lastVisual;
+    /** Lines scrolled by C-d / C-u; 0 means half a screen. */
+    private int scrollAmount;
 
     /** Column vertical motions aim for; Integer.MAX_VALUE means "end of line". */
     int desiredCol;
@@ -138,6 +140,7 @@ public final class Engine {
         registerTextObjects();
         registerEditCommands();
         registerVisualCommands();
+        registerScrolling();
     }
 
     // ------------------------------------------------------------------ public API
@@ -804,5 +807,71 @@ public final class Engine {
         visualCommands.put("O", swap);
         visualCommands.put("J", new CommandSpec(false, c -> visualJoin(true)));
         visualCommands.put("gJ", new CommandSpec(false, c -> visualJoin(false)));
+    }
+
+    // ------------------------------------------------------------------ scrolling
+
+    /** Applies {first', caret'}: scroll first, then put the caret on its line at the desired column. */
+    private void scrollTo(int[] r) {
+        if (r == null) {
+            ed.beep();
+            return;
+        }
+        ed.setFirstVisibleLine(r[0]);
+        ed.setCaret(Motions.atColumn(ed, r[1], desiredCol));
+    }
+
+    private void scrollCommand(String key, java.util.function.Function<Command, int[]> f) {
+        CommandSpec spec = new CommandSpec(false, c -> scrollTo(f.apply(c)));
+        commands.put(key, spec);
+        visualCommands.put(key, new CommandSpec(false, c -> {
+            scrollTo(f.apply(c));
+            updateSelection();
+        }));
+    }
+
+    private int caretLine() {
+        return ed.lineOfOffset(ed.caret());
+    }
+
+    private void zCommand(String key, char where, boolean toFirstNonBlank) {
+        commands.put(key, new CommandSpec(false, c -> {
+            if (c.hasCount()) {
+                int line = Math.min(c.count(), ed.lineCount()) - 1;
+                ed.setCaret(Motions.atColumn(ed, line, desiredCol));
+            }
+            int line = caretLine();
+            ed.setFirstVisibleLine(Scrolling.position(ed.visibleLineCount(), line, where));
+            if (toFirstNonBlank) {
+                ed.setCaret(Motions.firstNonBlank(ed, line));
+                desiredCol = Motions.column(ed, ed.caret());
+            }
+        }));
+    }
+
+    private void registerScrolling() {
+        java.util.function.Function<Command, Integer> amount = c -> {
+            if (c.hasCount()) scrollAmount = c.count();
+            return scrollAmount > 0 ? scrollAmount : Math.max(1, ed.visibleLineCount() / 2);
+        };
+        scrollCommand("<C-d>", c -> Scrolling.halfPage(ed.lineCount(), ed.visibleLineCount(),
+                ed.firstVisibleLine(), caretLine(), amount.apply(c), true));
+        scrollCommand("<C-u>", c -> Scrolling.halfPage(ed.lineCount(), ed.visibleLineCount(),
+                ed.firstVisibleLine(), caretLine(), amount.apply(c), false));
+        scrollCommand("<C-e>", c -> Scrolling.lines(ed.lineCount(), ed.visibleLineCount(),
+                ed.firstVisibleLine(), caretLine(), c.count(), true));
+        scrollCommand("<C-y>", c -> Scrolling.lines(ed.lineCount(), ed.visibleLineCount(),
+                ed.firstVisibleLine(), caretLine(), c.count(), false));
+        zCommand("zz", 'z', false);
+        zCommand("z.", 'z', true);
+        zCommand("zt", 't', false);
+        zCommand("z<CR>", 't', true);
+        zCommand("zb", 'b', false);
+        zCommand("z-", 'b', true);
+        for (char which : new char[] {'H', 'M', 'L'}) {
+            motion(String.valueOf(which), MotionType.LINEWISE, c -> Motions.firstNonBlank(c.ed,
+                    Scrolling.screenLine(c.ed.lineCount(), c.ed.visibleLineCount(), c.ed.firstVisibleLine(),
+                            c.count, which)));
+        }
     }
 }

@@ -21,6 +21,14 @@ import vimulator.VimulatorUtilities;
  * Started by scripts/smoke.sh via jEdit's -run option; writes results to $VIMULATOR_SMOKE_OUT.
  */
 public class Smoke {
+    static final String LONG = "|" + longText();
+
+    static String longText() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 200; i++) sb.append(i == 0 ? "" : "\n").append("line ").append(i);
+        return sb.toString();
+    }
+
     /** {before, keys, after} */
     static final String[][] CASES = {
         // Task 3: engine motions and legacy replay
@@ -71,6 +79,11 @@ public class Smoke {
         {"|ab\ncd\nef", "<C-v>jld", "\n|\nef"}, // block delete; caret placed by jEdit
         {"|ab\ncd", "<C-v>jIx<Esc>", "|xab\nxcd"}, // legacy block insert still works
         {"|ab\ncd", "ylvlp", "|a\ncd"}, // legacy visual paste still works
+        // Task 10: scrolling (window-height independent round trips)
+        {LONG, "<C-d><C-u>", LONG},
+        {LONG, "<C-d><C-d><C-u><C-u>", LONG},
+        {LONG, "LH", LONG},
+        {LONG, "zzzt5j<C-e><C-y>5k", LONG},
         // legacy replay (p/P are still legacy; legacy paste does not move the caret)
         {"|abc\nx", "yyp", "|abc\nabc\nx"},
         {"|abc\nx", "Y3p", "|abc\nabc\nabc\nabc\nx"},

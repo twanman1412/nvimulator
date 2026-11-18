@@ -18,6 +18,7 @@ public class TestRunner {
         vimulator.core.TextObjectTest.class,
         vimulator.core.TransformTest.class,
         vimulator.core.VisualTest.class,
+        vimulator.core.ScrollTest.class,
     };
 
     public static void main(String[] args) throws Exception {

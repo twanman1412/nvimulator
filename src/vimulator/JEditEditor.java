@@ -44,7 +44,17 @@ public class JEditEditor implements Editor {
     // ---- Editor
 
     @Override public int caret() { return ta().getCaretPosition(); }
-    @Override public void setCaret(int offset) { ta().moveCaretPosition(offset); }
+    /**
+     * Moves the caret. Electric scrolling (jEdit's scroll margin) only kicks in when the target
+     * line is off screen, like nvim's default scrolloff=0, so H/L/C-d land exactly.
+     */
+    @Override public void setCaret(int offset) {
+        JEditTextArea ta = ta();
+        int line = buf().getLineOfOffset(offset);
+        int first = ta.getFirstPhysicalLine();
+        boolean visible = line >= first && line < first + visibleLineCount();
+        ta.moveCaretPosition(offset, !visible);
+    }
 
     @Override public Mode mode() {
         return toMode(VimulatorUtilities.getMode(view));
@@ -153,6 +163,7 @@ public class JEditEditor implements Editor {
     }
 
     @Override public int firstVisibleLine() { return ta().getFirstPhysicalLine(); }
-    @Override public int visibleLineCount() { return Math.max(1, ta().getVisibleLines()); }
+    /** Fully visible lines: jEdit's count includes the partially visible line at the bottom. */
+    @Override public int visibleLineCount() { return Math.max(1, ta().getVisibleLines() - 1); }
     @Override public void setFirstVisibleLine(int line) { ta().setFirstPhysicalLine(line); }
 }
