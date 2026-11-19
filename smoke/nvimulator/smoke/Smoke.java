@@ -157,7 +157,17 @@ public class Smoke {
                 report.append(ok ? "PASS " : "FAIL ").append(show(c[0])).append(" ").append(show(c[1]))
                       .append(ok ? "" : " expected <" + show(c[2]) + "> got <" + show(result) + ">").append('\n');
             }
-            report.append(CASES.length - failed).append(" passed, ").append(failed).append(" failed\n");
+            int total = CASES.length + 1;
+            String redraw;
+            try {
+                redraw = insertEditRedrawsImmediately(view);
+            } catch (Throwable ex) {
+                redraw = "threw " + ex;
+            }
+            if (redraw != null) failed++;
+            report.append(redraw == null ? "PASS " : "FAIL ").append("insert-mode edits redraw immediately")
+                  .append(redraw == null ? "" : ": " + redraw).append('\n');
+            report.append(total - failed).append(" passed, ").append(failed).append(" failed\n");
             try (FileWriter w = new FileWriter(out)) {
                 w.write(report.toString());
             } catch (IOException ex) {
@@ -202,6 +212,34 @@ public class Smoke {
         int c = ta.getCaretPosition();
         String now = buffer.getText(0, buffer.getLength());
         return now.substring(0, c) + "|" + now.substring(c);
+    }
+
+    /**
+     * An insert entered through the engine keeps a compound edit open (one undo unit), and jEdit
+     * defers repaints and caret updates until a transaction completes. Edits made in insert mode
+     * must still reach the screen right away, i.e. leave no caret update queued in the text area.
+     * Returns null on success, else what went wrong.
+     */
+    static String insertEditRedrawsImmediately(View view) throws ReflectiveOperationException {
+        Buffer buffer = view.getBuffer();
+        JEditTextArea ta = view.getTextArea();
+        NvimulatorUtilities.setCommandMode(view);
+        buffer.remove(0, buffer.getLength());
+        buffer.insert(0, "foo bar");
+        ta.setCaretPosition(0);
+        java.lang.reflect.Field queued =
+                org.gjt.sp.jedit.textarea.TextArea.class.getDeclaredField("queuedCaretUpdate");
+        queued.setAccessible(true);
+        try {
+            send(view, ta, "A");
+            send(view, ta, "<C-w>");
+            if (!buffer.getText(0, buffer.getLength()).equals("foo ")) return "C-w did not edit";
+            if (!buffer.insideCompoundEdit()) return "no compound edit open (test premise)";
+            if (queued.getBoolean(ta)) return "caret update still queued after the edit";
+            return null;
+        } finally {
+            send(view, ta, "<Esc>");
+        }
     }
 
     static void send(View view, JEditTextArea ta, String tok) {

@@ -23,6 +23,8 @@ import java.util.*;
 import javax.swing.KeyStroke;
 import org.gjt.sp.jedit.EditAction;
 import org.gjt.sp.jedit.View;
+import org.gjt.sp.jedit.buffer.JEditBuffer;
+import org.gjt.sp.jedit.textarea.JEditTextArea;
 import org.gjt.sp.jedit.gui.DefaultInputHandler;
 import org.gjt.sp.jedit.gui.InputHandler;
 import org.gjt.sp.jedit.gui.KeyEventTranslator.Key;
@@ -62,16 +64,30 @@ public class InsertInputHandler extends InputHandler {
 
     @Override
     public void processKeyEvent(KeyEvent evt, int from, boolean global) {
-        KeyStroke k = KeyStroke.getKeyStroke(evt.getKeyCode(), evt.getModifiersEx());
-        Object o = this.insertBindings.get(k);
-        if (evt.getID() == KeyEvent.KEY_PRESSED && o instanceof EditAction) {
-            this.view.getBuffer().beginCompoundEdit();
-            this.invokeAction((EditAction) o);
-            this.view.getBuffer().endCompoundEdit();
-            evt.consume();
-            return;
+        JEditBuffer buffer = this.view.getBuffer();
+        JEditTextArea textArea = this.view.getTextArea();
+        int caretBefore = textArea.getCaretPosition();
+        int lengthBefore = buffer.getLength();
+        try {
+            KeyStroke k = KeyStroke.getKeyStroke(evt.getKeyCode(), evt.getModifiersEx());
+            Object o = this.insertBindings.get(k);
+            if (evt.getID() == KeyEvent.KEY_PRESSED && o instanceof EditAction) {
+                buffer.beginCompoundEdit();
+                try {
+                    this.invokeAction((EditAction) o);
+                } finally {
+                    buffer.endCompoundEdit();
+                }
+                evt.consume();
+                return;
+            }
+            this.defaultInputHandler.processKeyEvent(evt, from, global);
+        } finally {
+            // inside the insert's open compound edit jEdit holds back the repaint; release it now
+            if (buffer.insideCompoundEdit()
+                    && (textArea.getCaretPosition() != caretBefore || buffer.getLength() != lengthBefore))
+                NvimulatorUtilities.flushPendingUpdates(buffer);
         }
-        this.defaultInputHandler.processKeyEvent(evt, from, global);
     }
 
     @Override

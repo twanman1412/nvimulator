@@ -40,6 +40,22 @@ import java.util.Map;
 
 public class NvimulatorUtilities {
 
+    /**
+     * Delivers transactionComplete to the buffer's listeners, as jEdit does after every edit made
+     * outside a compound edit. Insert mode entered through the engine keeps a compound edit open
+     * so the whole insert is one undo unit; jEdit's text area defers repainting and caret updates
+     * until a transaction completes, so without this every typed key would show up late.
+     */
+    public static void flushPendingUpdates(JEditBuffer buffer) {
+        for (org.gjt.sp.jedit.buffer.BufferListener l : buffer.getBufferListeners()) {
+            try {
+                l.transactionComplete(buffer);
+            } catch (Throwable t) {
+                Log.log(Log.ERROR, NvimulatorUtilities.class, t);
+            }
+        }
+    }
+
     public static boolean checkEmulation(View view) {
         return view.getInputHandler() instanceof NvimulatorInputHandler;
     }
