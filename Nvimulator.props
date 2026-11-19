@@ -1,6 +1,6 @@
 plugin.nvimulator.NvimulatorPlugin.name=Nvimulator
 plugin.nvimulator.NvimulatorPlugin.author=mike dillon, Niels Mündler, Twan Kuipers
-plugin.nvimulator.NvimulatorPlugin.version=0.7.0
+plugin.nvimulator.NvimulatorPlugin.version=1.0.0
 plugin.nvimulator.NvimulatorPlugin.description=Nvimulator provides jEdit with (Neo)vim-style modal editing
 plugin.nvimulator.NvimulatorPlugin.activate=startup
 plugin.nvimulator.NvimulatorPlugin.usePluginHome=true
