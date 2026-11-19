@@ -1,14 +1,13 @@
-Vimulator is a vi-emulator for jEdit, bringing popular VIM keybindings to jEdit.
+Nvimulator brings (Neo)vim-style modal editing to jEdit.
 
-This project is a port of the jEdit Plugin Vimulator by mike dillon, modified to work for jdk 15 and jEdit 5. <br>
+It is a fork of Niels Mündler's port of mike dillon's jEdit plugin Vimulator, maintained separately. <br>
 
-This project is WIP, but already features
+Features
 <ul>
-<li>vi-like navigation</li>
-<li>basic commands (i.e. w,q)</li>
-<li>insertion, replace and visual modes</li>
-<li>the 3 visual modes, visual, visual block and visual line</li>
-<li>yanking</li>
+<li>a Vim-style command engine: counts, operators (d c y &gt; &lt; = g~ gu gU), motions and text objects</li>
+<li>insert, replace and the three visual modes (visual, visual line, visual block)</li>
+<li>repeat with <code>.</code>, search with <code>/ ? n N * #</code>, marks, scrolling</li>
+<li>ex commands, including <code>:[range]s/pattern/replacement/</code> with Vim regex syntax</li>
 <li>multiple caret editing</li>
 </ul>
 <br>

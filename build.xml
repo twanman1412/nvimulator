@@ -1,9 +1,9 @@
-<project name="Vimulator" default="dist" basedir=".">
+<project name="Nvimulator" default="dist" basedir=".">
 
 	<property name="src.dir" value="."/>
 	<property name="build.dir" value="build"/>
     <!-- can be bent to point at the Plugin jars directory instead -->
-	<!--<property name="install.dir"  value="/home/niels/.isabelle/Isabelle2021/jedit/jars/"/>-->
+	<!--<property name="install.dir"  value="${user.home}/.isabelle/Isabelle2021/jedit/jars/"/>-->
 	<property name="install.dir"  value="install"/>
 
     <!-- Replace this with the actual path, this is the installation path for the apt install -->
@@ -38,7 +38,7 @@
 
 	<target name="dist" depends="compile">
 		<mkdir dir="${install.dir}"/>
-		<jar jarfile="${install.dir}/Vimulator.jar">
+		<jar jarfile="${install.dir}/Nvimulator.jar">
 			<fileset dir="${build.dir}"/>
 			<fileset dir="${src.dir}">
 				<include name="actions.xml"/>

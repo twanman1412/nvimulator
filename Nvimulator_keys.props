@@ -1,0 +1,81 @@
+# Keybindings for the vi Modes
+
+# Structure:
+# nvimulator.keys.MODE.ACTION=KEYBINDING
+# where
+#   - mode refers to either insert, command, visual, visual-block or visual-line
+#   - action refers to an action (see jEdit.getActionNames())
+#   - keybinding refers to the letter code of some combination of keys
+#     (a plain letter like P means the unshifted key, S+P means shift+p)
+#
+# Motions, operators (d c y > < = g~ gu gU), text objects, counts, visual-mode
+# selection, scrolling, insert commands (i a I A o O), . and * # are handled by the
+# command engine in nvimulator.core and are not configured here. Keys the engine does
+# not handle fall through to the bindings below.
+
+# Insert mode
+nvimulator.keys.insert.vi-command-mode=ESCAPE
+nvimulator.keys.insert.vi-command-mode.2=C+[
+nvimulator.keys.insert.vi-command-mode.3=C+C
+nvimulator.keys.insert.prev-word=S+LEFT
+nvimulator.keys.insert.next-word=S+RIGHT
+nvimulator.keys.insert.prev-page=S+UP
+nvimulator.keys.insert.prev-page.2=PAGE_UP
+nvimulator.keys.insert.next-page=S+DOWN
+nvimulator.keys.insert.next-page.2=PAGE_DOWN
+nvimulator.keys.insert.vi-insert-delete-word=C+W
+nvimulator.keys.insert.vi-insert-delete-line=C+U
+nvimulator.keys.insert.vi-insert-one-command=C+O
+
+# Command mode
+nvimulator.keys.command.document-end=C+END
+nvimulator.keys.command.document-home=C+HOME
+nvimulator.keys.command.undo=U
+nvimulator.keys.command.redo=C+R
+nvimulator.keys.command.vi-replace-mode=S+R
+nvimulator.keys.command.prev-page=C+B
+nvimulator.keys.command.prev-page.2=PAGE_UP
+nvimulator.keys.command.next-page=C+F
+nvimulator.keys.command.next-page.2=PAGE_DOWN
+nvimulator.keys.command.vi-ex-command=:
+nvimulator.keys.command.vi-end-ex-command=ESCAPE
+nvimulator.keys.command.vi-end-ex-command.2=C+C
+nvimulator.keys.command.vi-search=/
+nvimulator.keys.command.vi-reverse-search=?
+nvimulator.keys.command.vi-repeat-search=N
+nvimulator.keys.command.vi-repeat-search-opposite=S+N
+nvimulator.keys.command.vi-current-line-status=C+G
+nvimulator.keys.command.exit=S+Q
+
+nvimulator.keys.command.split-horizontal=C+W S
+nvimulator.keys.command.split-vertical=C+W V
+nvimulator.keys.command.next-buffer=C+W W
+nvimulator.keys.command.unsplit=C+W O
+
+nvimulator.keys.command.collapse-fold=Z F
+nvimulator.keys.command.collapse-all-folds=Z M
+nvimulator.keys.command.expand-fold=Z O
+nvimulator.keys.command.expand-all-folds=Z R
+
+nvimulator.keys.command.vi-paste-before=S+P
+nvimulator.keys.command.vi-paste-after=P
+
+# Visual mode
+nvimulator.keys.visual.vi-command-mode=ESCAPE
+nvimulator.keys.visual.vi-command-mode.2=C+[
+nvimulator.keys.visual.vi-command-mode.3=C+C
+nvimulator.keys.visual.vi-visual-ex-command=:
+nvimulator.keys.visual.vi-paste-selection=P
+nvimulator.keys.visual.vi-multiline-insert=S+I
+nvimulator.keys.visual.vi-multiline-append=S+A
+nvimulator.keys.visual.vi-replace-selection=R
+
+# Visual block mode
+nvimulator.keys.visual-block.vi-multiline-change=C
+
+# some standard keybindings
+nvimulator.keys.global.paste=CS+V
+nvimulator.keys.global.copy=CS+C
+nvimulator.keys.global.cut=CS+X
+nvimulator.keys.global.undo=C+Z
+nvimulator.keys.global.redo=CS+Z

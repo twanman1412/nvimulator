@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-	Vimulator BeanShell actions
+	Nvimulator BeanShell actions
 	Copyright (C) 2000, 2001, 2002
 
 	This program is free software; you can redistribute it and/or
@@ -22,8 +22,8 @@
 <!-- Actions defined for the vi-emulation.
     Beanshell actions should not be longer than 3 lines.
     The reason is that errors hardly turn up anywhere and are difficult to trace.
-    Instead, create a corresponding function in the VimulatorUtilites class
-    TODO separate VimulatorUtilities and VimulatorActions
+    Instead, create a corresponding function in the NvimulatorUtilites class
+    TODO separate NvimulatorUtilities and NvimulatorActions
 -->
 
 <!DOCTYPE ACTIONS SYSTEM "actions.dtd">
@@ -32,130 +32,130 @@
 
 	<ACTION NAME="toggle-vi-mode">
 		<CODE>
-			vimulator.VimulatorPlugin.toggleEmulation(view);
+			nvimulator.NvimulatorPlugin.toggleEmulation(view);
 		</CODE>
 		<IS_SELECTED>
-			return vimulator.VimulatorUtilities.checkEmulation(view);
+			return nvimulator.NvimulatorUtilities.checkEmulation(view);
 		</IS_SELECTED>
 	</ACTION>
 
 	<ACTION NAME="vi-command-mode">
 		<CODE>
-			vimulator.VimulatorUtilities.setCommandMode(view);
+			nvimulator.NvimulatorUtilities.setCommandMode(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-insert-delete-word">
 		<CODE>
-			vimulator.VimulatorUtilities.insertDeleteWord(view);
+			nvimulator.NvimulatorUtilities.insertDeleteWord(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-insert-delete-line">
 		<CODE>
-			vimulator.VimulatorUtilities.insertDeleteLine(view);
+			nvimulator.NvimulatorUtilities.insertDeleteLine(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-insert-one-command">
 		<CODE>
-			vimulator.VimulatorUtilities.insertOneCommand(view);
+			nvimulator.NvimulatorUtilities.insertOneCommand(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-replace-mode">
 		<CODE>
-			vimulator.VimulatorUtilities.setReplaceMode(view);
+			nvimulator.NvimulatorUtilities.setReplaceMode(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-paste-selection">
 		<CODE>
-            vimulator.VimulatorUtilities.pasteSelection(textArea);
-			vimulator.VimulatorUtilities.setCommandMode(view);
+            nvimulator.NvimulatorUtilities.pasteSelection(textArea);
+			nvimulator.NvimulatorUtilities.setCommandMode(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-paste-after">
 		<CODE>
-			vimulator.VimulatorUtilities.paste(textArea, buffer, true);
+			nvimulator.NvimulatorUtilities.paste(textArea, buffer, true);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-paste-before">
 		<CODE>
-			vimulator.VimulatorUtilities.paste(textArea, buffer, false);
+			nvimulator.NvimulatorUtilities.paste(textArea, buffer, false);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-ex-command" NO_RECORD="TRUE">
 		<CODE>
-			vimulator.VimulatorPlugin.enterExCommand(view);
+			nvimulator.NvimulatorPlugin.enterExCommand(view);
 		</CODE>
 	</ACTION>
 	<ACTION NAME="vi-end-ex-command" NO_RECORD="TRUE">
 		<CODE>
-			vimulator.VimulatorPlugin.leaveExCommand(view);
+			nvimulator.NvimulatorPlugin.leaveExCommand(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-search" NO_RECORD="TRUE">
 		<CODE>
-			vimulator.VimulatorPlugin.enterSearch(view);
+			nvimulator.NvimulatorPlugin.enterSearch(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-reverse-search" NO_RECORD="TRUE">
 		<CODE>
-			vimulator.VimulatorPlugin.enterSearch(view, true);
+			nvimulator.NvimulatorPlugin.enterSearch(view, true);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-repeat-search" NO_RECORD="TRUE">
 		<CODE>
-			vimulator.VimulatorPlugin.repeatSearch(view);
+			nvimulator.NvimulatorPlugin.repeatSearch(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-repeat-search-opposite" NO_RECORD="TRUE">
 		<CODE>
-			vimulator.VimulatorPlugin.repeatSearch(view, true);
+			nvimulator.NvimulatorPlugin.repeatSearch(view, true);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-save-close-buffer">
 		<CODE>
-			vimulator.VimulatorUtilities.saveCloseBuffer(view);
+			nvimulator.NvimulatorUtilities.saveCloseBuffer(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-save-close-buffer-force">
 		<CODE>
-			vimulator.VimulatorUtilities.saveCloseBuffer(view);
+			nvimulator.NvimulatorUtilities.saveCloseBuffer(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-save-close-all">
 		<CODE>
-			vimulator.VimulatorUtilities.saveCloseAll(view);
+			nvimulator.NvimulatorUtilities.saveCloseAll(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-save-close-all-force">
 		<CODE>
-			vimulator.VimulatorUtilities.saveCloseAll(view);
+			nvimulator.NvimulatorUtilities.saveCloseAll(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-close-all-force">
 		<CODE>
-			vimulator.VimulatorUtilities.closeAllForce(view);
+			nvimulator.NvimulatorUtilities.closeAllForce(view);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-visual-ex-command" NO_RECORD="TRUE">
 		<CODE>
-			vimulator.VimulatorUtilities.visualExCommand(view);
+			nvimulator.NvimulatorUtilities.visualExCommand(view);
 		</CODE>
 	</ACTION>
 
@@ -168,7 +168,7 @@
 	<ACTION NAME="vi-replace-selection">
 		<CODE>
             view.getInputHandler().readNextChar("",
-                "vimulator.VimulatorUtilities.replaceSelection(textArea,__char__);");
+                "nvimulator.NvimulatorUtilities.replaceSelection(textArea,__char__);");
 		</CODE>
 	</ACTION>
 
@@ -180,27 +180,27 @@
 
 			args = new Object[] { path, lines, Math.round(percent) };
 			status = jEdit.getProperty(
-				"vimulator.msg.curr-line-status", args);
+				"nvimulator.msg.curr-line-status", args);
 
-			vimulator.VimulatorUtilities.setStatus(view, status);
+			nvimulator.NvimulatorUtilities.setStatus(view, status);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-multiline-insert">
 		<CODE>
-            vimulator.VimulatorUtilities.multilineInsert(view, textArea);
+            nvimulator.NvimulatorUtilities.multilineInsert(view, textArea);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-multiline-change">
 		<CODE>
-            vimulator.VimulatorUtilities.multilineChange(view, textArea);
+            nvimulator.NvimulatorUtilities.multilineChange(view, textArea);
 		</CODE>
 	</ACTION>
 
 	<ACTION NAME="vi-multiline-append">
 		<CODE>
-            vimulator.VimulatorUtilities.multilineAppend(view, textArea);
+            nvimulator.NvimulatorUtilities.multilineAppend(view, textArea);
 		</CODE>
 	</ACTION>
 

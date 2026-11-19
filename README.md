@@ -1,10 +1,11 @@
-# Vimulator
-[![Build Status](https://app.travis-ci.com/nielstron/vimulator.svg?branch=master)](https://app.travis-ci.com/nielstron/vimulator)
+# Nvimulator
 
-A vi-emulator for jEdit.
+A (Neo)vim emulator for jEdit.
 
-This project is a "fork" of the jEdit Plugin [Vimulator](http://plugins.jedit.org/plugins/?Vimulator),
-modified to work for JDK 15 and jEdit 5+ (or whatever [Isabelle/jEdit](https://isabelle.in.tum.de/) is currently using).
+Nvimulator is a fork of [nielstron/vimulator](https://github.com/nielstron/vimulator), which in turn
+ports mike dillon's jEdit plugin [Vimulator](http://plugins.jedit.org/plugins/?Vimulator) to modern
+JDKs and jEdit 5+ (including [Isabelle/jEdit](https://isabelle.in.tum.de/)). This fork is maintained
+separately and is not meant to be merged upstream.
 
 Normal and visual mode keys are handled by a Vim-style command engine:
 `[count] operator [count] motion | text-object`, so `d3w`, `2dd`, `ci(`, `ya"`,
@@ -35,19 +36,17 @@ visual-mode operator.
 
 ## Installation
 
-This plugin is available via the [official Plugin Manager](http://plugins.jedit.org).
-You can install it using the Plugin Manager
+Nvimulator is not on the jEdit Plugin Manager; install the jar manually [as a "User Plugin"](http://plugins.jedit.org/install.php).
+Disable the original Vimulator plugin first: both install their own input handler.
 
-#### Manual installation
-If you do not want to install the plugin through the normal route, you may manually install the compiled Plugin [as a "User Plugin"](http://plugins.jedit.org/install.php).
 For Isabelle/jEdit 2021 on Linux/Mac, the user plugin path is `$HOME/.isabelle/Isabelle2021/jedit/jars`.
 For Isabelle/jEdit 2021 on Windows, the user plugin path is `%HOMEPATH%\.isabelle\Isabelle2021\jedit\jars`.
 
-You may find the corresponding `Vimulator.jar` under [Releases](https://github.com/nielstron/vimulator/releases) or by building the project yourself.
+You may find the corresponding `Nvimulator.jar` under [Releases](https://github.com/twanman1412/nvimulator/releases) or by building the project yourself.
 
 ## Building without ant
 
-`scripts/build.sh` builds `install/Vimulator.jar` with plain `javac`/`jar`.
+`scripts/build.sh` builds `install/Nvimulator.jar` with plain `javac`/`jar`.
 `JAVA_HOME` selects the JDK and `JEDIT_JAR` the jEdit jar to compile against
 (default `/usr/share/java/jedit/jedit.jar`):
 
@@ -58,7 +57,7 @@ JAVA_HOME=/usr/lib/jvm/java-17-openjdk scripts/build.sh
 ## Tests
 
 - `scripts/test.sh` runs the unit tests of the jEdit-independent command engine
-  (`src/vimulator/core`) against an in-memory editor. No dependencies besides a JDK.
+  (`src/nvimulator/core`) against an in-memory editor. No dependencies besides a JDK.
 - `scripts/smoke.sh` runs end-to-end key sequences in a throwaway jEdit instance
   (separate settings directory; opens a jEdit window for a few seconds).
 

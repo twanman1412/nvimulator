@@ -1,0 +1,42 @@
+plugin.nvimulator.NvimulatorPlugin.name=Nvimulator
+plugin.nvimulator.NvimulatorPlugin.author=mike dillon, Niels Mündler, Twan Kuipers
+plugin.nvimulator.NvimulatorPlugin.version=0.7.0
+plugin.nvimulator.NvimulatorPlugin.description=Nvimulator provides jEdit with (Neo)vim-style modal editing
+plugin.nvimulator.NvimulatorPlugin.activate=startup
+plugin.nvimulator.NvimulatorPlugin.usePluginHome=true
+
+
+# dependencies
+plugin.nvimulator.NvimulatorPlugin.depend.0=jdk 15
+plugin.nvimulator.NvimulatorPlugin.depend.1=jedit 05.06.99.00
+
+# settings
+nvimulator.enabled=true
+
+# Plugin options
+plugin.nvimulator.NvimulatorPlugin.menu=toggle-vi-mode 
+
+# option pane
+plugin.nvimulator.NvimulatorPlugin.option-pane=nvimulator
+options.nvimulator.label=Nvimulator
+options.nvimulator.enable=Enable VI Emulation by Default
+options.nvimulator.code=new nvimulator.NvimulatorOptionPane();
+
+# menu
+toggle-vi-mode.label=VI Emulation
+
+# status bar messages
+nvimulator.msg.simple-status="{0}" {1}L, {2}C
+nvimulator.msg.save-status="{0}" {1}L, {2}C written
+nvimulator.msg.curr-line-status="{0}" {1} lines --{2}%--
+
+nvimulator.msg.no-regexp=No previous regular expression
+nvimulator.msg.not-found=Pattern not found: {0}
+nvimulator.msg.bad-ex-command=Not an editor command: {0}
+
+nvimulator.msg.command-mode=
+nvimulator.msg.insert-mode=-- INSERT --
+nvimulator.msg.replace-mode=-- REPLACE --
+nvimulator.msg.visual-mode=-- VISUAL --
+nvimulator.msg.visual-block-mode=-- VISUAL-BLOCK --
+nvimulator.msg.visual-line-mode=-- VISUAL-LINE --

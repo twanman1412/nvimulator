@@ -10,17 +10,17 @@ SETTINGS="$PWD/build/jedit-smoke"
 rm -rf "$SETTINGS" build/smoke-classes
 mkdir -p "$SETTINGS/jars" build/smoke-classes
 printf 'tip.show=false\nfirstTime=false\nview.docking.framework=Original\n' > "$SETTINGS/properties"
-cp install/Vimulator.jar "$SETTINGS/jars/"
-"${J}javac" -Xlint:-options --release 17 -cp "$JEDIT_JAR:install/Vimulator.jar" -d build/smoke-classes \
+cp install/Nvimulator.jar "$SETTINGS/jars/"
+"${J}javac" -Xlint:-options --release 17 -cp "$JEDIT_JAR:install/Nvimulator.jar" -d build/smoke-classes \
     $(find smoke -name '*.java')
-"${J}jar" cf "$SETTINGS/jars/vimulator-smoke.jar" -C build/smoke-classes .
-echo 'vimulator.smoke.Smoke.start();' > build/smoke-run.bsh
-export VIMULATOR_SMOKE_OUT="$PWD/build/smoke-result.txt"
-rm -f "$VIMULATOR_SMOKE_OUT"
+"${J}jar" cf "$SETTINGS/jars/nvimulator-smoke.jar" -C build/smoke-classes .
+echo 'nvimulator.smoke.Smoke.start();' > build/smoke-run.bsh
+export NVIMULATOR_SMOKE_OUT="$PWD/build/smoke-result.txt"
+rm -f "$NVIMULATOR_SMOKE_OUT"
 timeout 90 "${J}java" -jar "$JEDIT_JAR" -settings="$SETTINGS" -run="$PWD/build/smoke-run.bsh" \
     > build/smoke-jedit.log 2>&1 || true
-if [ ! -f "$VIMULATOR_SMOKE_OUT" ]; then
+if [ ! -f "$NVIMULATOR_SMOKE_OUT" ]; then
     echo "smoke: no result (see build/smoke-jedit.log)"; tail -20 build/smoke-jedit.log; exit 1
 fi
-cat "$VIMULATOR_SMOKE_OUT"
-grep -q ' 0 failed' "$VIMULATOR_SMOKE_OUT"
+cat "$NVIMULATOR_SMOKE_OUT"
+grep -q ' 0 failed' "$NVIMULATOR_SMOKE_OUT"
